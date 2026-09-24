@@ -26,3 +26,11 @@
 | `docs/MIGRATION_DRY_RUN_REPORT.md` | Dry-run audit report | Sandbox execution metrics | Phase 2 | Zero | Document inspection |
 | `scripts/detect_data_inconsistencies.py` | Data anomaly detection script | Audit inconsistencies (MIG-004) | Phase 2 | Zero | Execution verified |
 | `DATA_INCONSISTENCIES.csv` | Exported data inconsistencies CSV | 82 tracked anomalies with recommendations | Phase 2 | Zero | CSV inspection |
+| `services/application_service.py` | New Application State Machine service | Central transition function, validation, and optimistic locking (APP-001) | Phase 6 | Low | `pytest tests/test_application_state_machine.py` (7/7 passed) |
+| `services/razorpay_client.py` | New Razorpay client wrapper & verifier | Server-side order creation, HMAC signature verification, webhook validation (PAY-001) | Phase 8 | Low | `pytest tests/test_payment_razorpay.py` (11/11 passed) |
+| `static/js/payment_gateway.js` | New client payment gateway handler | Razorpay modal checkout with automatic dynamic QR fallback (PAY-004) | Phase 8 | Low | Frontend inspection |
+| `app.py` | DDL for `application_status_history` & `payment_events`, column migrations for `enrollments`/`post_hire_deposits`/`course_payments`, endpoints `/api/payment/...` | Integrate state machine and Razorpay endpoints (APP-002, PAY-002, PAY-003) | Phase 6 & 8 | Medium | Full pytest suite (50/50 passed) |
+| `tests/test_application_state_machine.py` | New unit & integration test suite | Verify state machine transitions, invalid jumps, unauthorized actors, concurrency (APP-004) | Phase 6 | Zero | 7/7 passed |
+| `tests/test_payment_razorpay.py` | New payment unit & integration test suite | Verify config, signature verification, order creation, webhook idempotency (PAY-003) | Phase 8 | Zero | 11/11 passed |
+| `tests/conftest.py` | Added Razorpay endpoints to CSRF exemptions in test harness | Ensure API endpoints can be tested cleanly without browser sessions | Test | Zero | Full test suite passed |
+

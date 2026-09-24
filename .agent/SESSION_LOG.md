@@ -68,3 +68,35 @@
 ### Next Steps / Phase 3 Transition
 - Proceed to Session 2: Phase 3 (Database & Payment Infrastructure - Razorpay migration, payment fallback, application state machine).
 
+## Session: 2026-09-25 (Session 2: Application State Machine & Razorpay Gateway Architecture)
+
+### Started
+- Time: 01:20
+- Trigger: User approved proceeding into Session 2.
+- Focus: Phase 6 (Application State Machine: APP-001 - APP-004) and Phase 8 (Payment Architecture: PAY-001 - PAY-004).
+
+### Completed Work
+1. **Application State Machine (Phase 6)**:
+   - Built `services/application_service.py` featuring `transition_application()` with strict state validation, role-based permissions (`admin`, `mentor`, `intern`, `system`), optimistic locking against race conditions, and idempotent re-executions.
+   - Added `application_status_history` audit table and index in `init_db()` to track all state changes, changed_by, reason, request_id, and metadata.
+   - Refactored `transition_application_status()`, `mentor_update_status()`, and `admin_update_application_status()` in `app.py` to route through the state machine.
+   - Authored test suite `tests/test_application_state_machine.py` (7/7 tests passed).
+2. **Razorpay Payment Gateway & Fallback Architecture (Phase 8)**:
+   - Built `services/razorpay_client.py` implementing dynamic configuration checking (`is_razorpay_enabled()`), HMAC-SHA256 signature verification, and webhook signature checking.
+   - Added endpoints in `app.py`:
+     - `GET /api/payment/config`
+     - `POST /api/payment/razorpay/create-order`
+     - `POST /api/payment/razorpay/verify-payment`
+     - `POST /api/payment/razorpay/webhook`
+   - Added `payment_events` table for webhook deduplication / idempotency.
+   - Added `razorpay_order_id`, `razorpay_payment_id`, `razorpay_signature` columns to `enrollments`, `post_hire_deposits`, and `course_payments` tables in `init_db()`.
+   - Created `static/js/payment_gateway.js` providing Razorpay modal checkout with automatic graceful fallback to the manual UPI QR code.
+   - Authored test suite `tests/test_payment_razorpay.py` (11/11 tests passed).
+3. **Full Regression Test Pass**:
+   - Executed full test suite: **50 passed in 48.08s (100% pass rate)**.
+   - Zero environment secrets, credentials, or SQLite databases committed (`python scripts/verify_env_safety.py` clean).
+
+### Next Steps / Session 3 Transition
+- Session 3: Phase 9 (Database Integrity Engine: `scripts/check_data_integrity.py`) and Phase 7 (Enrollment State Machine).
+
+

@@ -29,13 +29,21 @@
 - [x] S1-004 Remote alignment (`origin` -> `Internshipportal4.git`, upstream push disabled)
 - [x] S1-005 Baseline commit & tag (`baseline/source-import`)
 
-## P1 — Session 2: Phase 3 (Database, State Machine & Razorpay Infrastructure) (NEXT)
+## P1 — Session 2: State Machine & Razorpay Infrastructure (COMPLETE)
 
-- [ ] APP-001 Central transition function (`transition_application()`)
-- [ ] APP-002 Status history table (`application_status_history`)
-- [ ] APP-003 Prevent direct status mutation in `app.py`
-- [ ] APP-004 State transition automated test suite
-- [ ] PAY-001 Razorpay client wrapper & config loader (`services/razorpay_client.py`)
-- [ ] PAY-002 Razorpay order creation endpoints (`/api/razorpay/create-order`)
-- [ ] PAY-003 Razorpay signature verification & webhook idempotency handler
-- [ ] PAY-004 Dual payment UI (Razorpay button with dynamic QR fallback)
+- [x] APP-001 Central transition function (`transition_application()` in `services/application_service.py`)
+- [x] APP-002 Status history table (`application_status_history` in `init_db()`)
+- [x] APP-003 Prevent direct status mutation in `app.py` (`mentor_update_status`, `admin_update_application_status`, `/enroll`, `/paid/enroll`)
+- [x] APP-004 State transition automated test suite (`tests/test_application_state_machine.py`)
+- [x] PAY-001 Razorpay client wrapper & config loader (`services/razorpay_client.py`)
+- [x] PAY-002 Razorpay order creation endpoints (`/api/payment/razorpay/create-order`)
+- [x] PAY-003 Razorpay signature verification & webhook idempotency handler (`/api/payment/razorpay/verify-payment`, `/api/payment/razorpay/webhook`, `payment_events`)
+- [x] PAY-004 Dual payment UI (Razorpay button with dynamic QR fallback in `static/js/payment_gateway.js`)
+
+## P1 — Session 3: Database Integrity Engine & Enrollment State Machine (NEXT)
+
+- [ ] INT-001 Database integrity detector script (`scripts/check_data_integrity.py`)
+- [ ] INT-002 Automatic integrity report generation (`docs/DATA_INTEGRITY_REPORT.md`)
+- [ ] ENR-001 Enrollment lifecycle transition service (`services/enrollment_service.py`)
+- [ ] ENR-002 Enrollment state machine automated test suite (`tests/test_enrollment_state_machine.py`)
+

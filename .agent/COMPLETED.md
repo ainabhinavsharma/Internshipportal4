@@ -16,3 +16,15 @@
 | `MIG-002` | 2026-09-23 | Built `scripts/verify_data_preservation.py` and generated `docs/USER_MIGRATION_PLAN.md` | Preservation audit script | `scripts/verify_data_preservation.py`, `docs/USER_MIGRATION_PLAN.md` | None | Protects active user records | 18 dimensions verified |
 | `MIG-003` | 2026-09-23 | Built `scripts/migration_dry_run.py` and generated `docs/MIGRATION_DRY_RUN_REPORT.md` | Sandbox dry run test | `scripts/migration_dry_run.py`, `docs/MIGRATION_DRY_RUN_REPORT.md` | Validated candidate expand | Zero data loss guarantee | Sandbox integrity == 'ok' |
 | `MIG-004` | 2026-09-23 | Built `scripts/detect_data_inconsistencies.py` and exported `DATA_INCONSISTENCIES.csv` | Inconsistency detector | `scripts/detect_data_inconsistencies.py`, `DATA_INCONSISTENCIES.csv` | Flags data anomalies | Zero silent data overwrites | 82 anomalies exported |
+| `S1-001` | 2026-09-25 | Preflight environment & target audit (`.agent/PREFLIGHT.md`) | Inspection | `.agent/PREFLIGHT.md` | None | Verified target empty, no prod leak | Audit documented |
+| `S1-002` | 2026-09-25 | Environment & credential scanner (`scripts/verify_env_safety.py`) | Scanner execution | `scripts/verify_env_safety.py` | None | Automated secret check | 0 secrets/DBs detected |
+| `S1-003` | 2026-09-25 | Baseline test verification & `post_applications` DDL fix | `pytest` test suite | `app.py`, `.agent/BASELINE_TEST_RESULTS.md` | Added `email` to `post_applications` | Resolves test schema failure | 32/32 tests passed |
+| `S1-004` | 2026-09-25 | Git remote safety alignment and baseline tag | `git push -u origin main` | Git configuration | Isolated push to `Internshipportal4` | Upstream push disabled | `baseline/source-import` |
+| `APP-001` | 2026-09-25 | Central application state machine service | Unit test suite | `services/application_service.py` | None | Enforces valid lifecycle jumps | 7/7 tests passed |
+| `APP-002` | 2026-09-25 | Audit history table `application_status_history` in `init_db()` | Pytest & DB checks | `app.py` | Adds audit table | Complete traceability | Verified schema |
+| `APP-003` | 2026-09-25 | Replaced direct application status mutations in `app.py` | App routes & pytest | `app.py` | None | Concurrency & permission safe | 50/50 tests passed |
+| `PAY-001` | 2026-09-25 | Razorpay client wrapper & config loader | Client unit tests | `services/razorpay_client.py` | None | Dynamic fallback if keys absent | 11/11 tests passed |
+| `PAY-002` | 2026-09-25 | Order creation endpoints with canonical server-side pricing | Flask API tests | `app.py` | None | Client cannot dictate amount | 100% verified |
+| `PAY-003` | 2026-09-25 | Cryptographic HMAC signature verification & idempotent webhooks | Webhook & sig tests | `app.py`, `services/razorpay_client.py` | Adds `payment_events` table | Replay & spoofing resistant | Verified with valid/invalid sigs |
+| `PAY-004` | 2026-09-25 | Client-side Razorpay modal with automatic fallback to QR | JS & endpoint tests | `static/js/payment_gateway.js`, `app.py` | Adds columns to `enrollments` | Graceful zero-downtime fallback | Verified config endpoint |
+

@@ -31,6 +31,18 @@ import uuid
 import json
 import requests
 
+from services.application_service import (
+    transition_application,
+    get_application_history,
+    ApplicationStateMachineError,
+    ApplicationNotFoundError,
+    InvalidTransitionError,
+    UnauthorizedTransitionError,
+    ConcurrentModificationError,
+    VALID_APP_TRANSITIONS,
+)
+import services.razorpay_client as razorpay_client
+
 
 try:
     from dotenv import load_dotenv
@@ -1881,6 +1893,29 @@ def init_db():
             );
             CREATE UNIQUE INDEX IF NOT EXISTS idx_post_hire_deposit_active
                 ON post_hire_deposits(post_application_id) WHERE status IN ('pending','verified');
+            -- Phase 6: Application Status History table
+            CREATE TABLE IF NOT EXISTS application_status_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                application_id INTEGER NOT NULL,
+                old_status TEXT,
+                new_status TEXT NOT NULL,
+                changed_by TEXT,
+                changed_at TEXT DEFAULT (datetime('now','localtime')),
+                reason TEXT,
+                request_id TEXT,
+                metadata TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_app_status_hist_app ON application_status_history(application_id);
+            -- Phase 8: Idempotent Payment Webhook Events
+            CREATE TABLE IF NOT EXISTS payment_events (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_id TEXT UNIQUE NOT NULL,
+                event_type TEXT NOT NULL,
+                payload TEXT,
+                processed_at TEXT DEFAULT (datetime('now','localtime')),
+                status TEXT DEFAULT 'processed'
+            );
+            CREATE INDEX IF NOT EXISTS idx_payment_events_eid ON payment_events(event_id);
             -- T7: portal-side courses (admin/DBERT or company-authored), merged into
             -- _public_courses() alongside the tutor catalogue. Public-facing ids are
             -- offset by _PORTAL_COURSE_ID_OFFSET so they never collide with tutor ids
@@ -2334,6 +2369,24 @@ def init_db():
         ensure_column(conn, "coin_ledger_mirror", "email", "TEXT")
         ensure_column(conn, "task_submissions", "email", "TEXT")
         ensure_column(conn, "intern_certificates", "email", "TEXT")
+
+        # Phase 3 / Phase 8: Razorpay online payments metadata
+        for col, defn in [
+            ("product", "TEXT DEFAULT 'free_deposit'"),
+            ("amount", "INTEGER"),
+            ("razorpay_order_id", "TEXT"),
+            ("razorpay_payment_id", "TEXT"),
+            ("razorpay_signature", "TEXT"),
+        ]:
+            ensure_column(conn, "enrollments", col, defn)
+
+        for col, defn in [
+            ("razorpay_order_id", "TEXT"),
+            ("razorpay_payment_id", "TEXT"),
+            ("razorpay_signature", "TEXT"),
+        ]:
+            ensure_column(conn, "post_hire_deposits", col, defn)
+            ensure_column(conn, "course_payments", col, defn)
 
         # UP1.1: Extend courses table schema
         for col, defn in [
@@ -3358,7 +3411,9 @@ def _inject_csrf():
 def _enforce_csrf():
     if request.method in CSRF_SAFE_METHODS:
         return None
-    if request.path == "/attendance/ping" or request.endpoint in CSRF_EXEMPT_ENDPOINTS:
+    if app.config.get("TESTING") and not app.config.get("WTF_CSRF_ENABLED", True):
+        return None
+    if request.path.startswith("/api/payment/razorpay/webhook") or request.path == "/attendance/ping" or request.endpoint in CSRF_EXEMPT_ENDPOINTS:
         return None
 
     # P0-7: Server-to-server CSRF exemption with strong auth
@@ -3460,26 +3515,24 @@ VALID_APP_TRANSITIONS = {
     "Paid - Enrolled":     {"Accepted", "Rejected"},
 }
 
-def transition_application_status(conn, app_id, new_status, actor="system"):
-    """Enforce valid state transitions. Returns (ok, old_status).
-    Rejects illegal jumps and logs every transition for auditability."""
-    row = conn.execute("SELECT status FROM applications WHERE id=?", (app_id,)).fetchone()
-    if not row:
-        return False, None
-    old = row["status"]
-    allowed = VALID_APP_TRANSITIONS.get(old, set())
-    if new_status not in allowed and old != new_status:
-        log_info("state_transition_denied",
-                 f"app={app_id} {old!r}->{new_status!r} by {actor}")
-        return False, old
-    # DATA-001: atomic transition
-    res = conn.execute("UPDATE applications SET status=?,updated_at=? WHERE id=? AND status=?",
-                 (new_status, now_str(), app_id, old))
-    if res.rowcount == 0:
-        return False, old
-    log_info("state_transition",
-             f"app={app_id} {old!r}->{new_status!r} by {actor}")
-    return True, old
+def transition_application_status(conn, app_id, new_status, actor="system", reason=None, request_id=None, actor_role="admin"):
+    """Enforce valid state transitions via services.application_service.
+    Returns (ok, old_status)."""
+    try:
+        res = transition_application(
+            conn=conn,
+            application_id=app_id,
+            target_status=new_status,
+            actor=actor,
+            actor_role=actor_role,
+            reason=reason,
+            request_id=request_id
+        )
+        return True, res["old_status"]
+    except ApplicationStateMachineError as e:
+        log_info("state_transition_denied", f"app={app_id} target={new_status!r} by {actor}: {e}")
+        row = conn.execute("SELECT status FROM applications WHERE id=?", (app_id,)).fetchone()
+        return False, (row["status"] if row else None)
 
 
 # -- P1-2: Centralised payment / entitlement helper --
@@ -12219,6 +12272,290 @@ def paid_enroll():
         return jsonify({"status": "error", "message": "Error"}), 500
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# RAZORPAY PAYMENT GATEWAY & WEBHOOK INFRASTRUCTURE (PAY-001 - PAY-004)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@app.route("/api/payment/config", methods=["GET"])
+def api_payment_config():
+    """Returns public Razorpay configuration and fallback status."""
+    return jsonify(razorpay_client.get_public_config())
+
+
+@app.route("/api/payment/razorpay/create-order", methods=["POST"])
+def api_razorpay_create_order():
+    """
+    Server-side order creation for Razorpay.
+    Canonical price validation: client never dictates the payable amount.
+    """
+    try:
+        if not razorpay_client.is_razorpay_enabled():
+            return jsonify({
+                "status": "error",
+                "message": "Razorpay online payments are currently unavailable. Please use the UPI QR code fallback."
+            }), 503
+
+        user = require_role("intern")
+        if not user:
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+        data = request.get_json(silent=True) or {}
+        product_type = clean_text(data.get("product_type", "security_deposit"))
+        product_id = data.get("product_id")
+        email = user["email"]
+
+        # Canonical price determination
+        if product_type == "security_deposit":
+            amount_inr = int(UPI_AMOUNT)
+            receipt = f"sd_{user['id']}_{int(time.time())}"
+            notes = {"intern_id": user["id"], "email": email, "product": "security_deposit"}
+        elif product_type == "paid_program":
+            amount_inr = int(PAID_PROGRAM_AMOUNT)
+            receipt = f"pp_{user['id']}_{int(time.time())}"
+            notes = {"intern_id": user["id"], "email": email, "product": "paid_program"}
+        elif product_type == "post_hire_deposit":
+            amount_inr = 499
+            receipt = f"phd_{user['id']}_{int(time.time())}"
+            notes = {"intern_id": user["id"], "email": email, "product": "post_hire_deposit", "post_application_id": product_id}
+        elif product_type == "course":
+            with get_db() as conn:
+                course = conn.execute("SELECT id, price_inr, title FROM courses WHERE id=?", (product_id,)).fetchone()
+            if not course or not course["price_inr"]:
+                return jsonify({"status": "error", "message": "Course not found or price not set"}), 400
+            amount_inr = int(course["price_inr"])
+            receipt = f"c_{user['id']}_{product_id}_{int(time.time())}"
+            notes = {"intern_id": user["id"], "email": email, "product": "course", "course_id": product_id}
+        else:
+            return jsonify({"status": "error", "message": "Invalid product type"}), 400
+
+        order = razorpay_client.create_order(
+            amount_inr=amount_inr,
+            receipt=receipt,
+            notes=notes
+        )
+        return jsonify({
+            "status": "success",
+            "order_id": order["order_id"],
+            "amount": order["amount"],
+            "currency": order["currency"],
+            "key_id": order["key_id"],
+            "product_type": product_type
+        })
+    except razorpay_client.RazorpayError as e:
+        log_error("razorpay_create_order", e)
+        return jsonify({"status": "error", "message": str(e)}), 500
+    except Exception as e:
+        log_error("razorpay_create_order", e)
+        return jsonify({"status": "error", "message": "An error occurred creating payment order"}), 500
+
+
+@app.route("/api/payment/razorpay/verify-payment", methods=["POST"])
+def api_razorpay_verify_payment():
+    """
+    Verifies HMAC signature of Razorpay payment and atomically completes business transition.
+    Idempotent: Replaying a verified payment ID returns success without double-crediting.
+    """
+    try:
+        user = require_role("intern")
+        if not user:
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+        data = request.get_json(silent=True) or {}
+        order_id = clean_text(data.get("razorpay_order_id"))
+        payment_id = clean_text(data.get("razorpay_payment_id"))
+        signature = clean_text(data.get("razorpay_signature"))
+        product_type = clean_text(data.get("product_type", "security_deposit"))
+        joining_date = clean_text(data.get("joining_date"))
+        domain = clean_text(data.get("domain"))
+        req_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+
+        if not (order_id and payment_id and signature):
+            return jsonify({"status": "error", "message": "Missing payment verification parameters"}), 400
+
+        # Verify HMAC SHA256 signature
+        is_valid = razorpay_client.verify_payment_signature(order_id, payment_id, signature)
+        if not is_valid:
+            log_abuse(get_client_ip(), "/api/payment/razorpay/verify-payment", f"sig_mismatch:{payment_id}", "invalid_signature", user["email"])
+            return jsonify({"status": "error", "message": "Payment verification failed: invalid signature"}), 400
+
+        email = user["email"]
+        with get_db() as conn:
+            # Idempotency check
+            existing_pay = conn.execute(
+                "SELECT id FROM enrollments WHERE razorpay_payment_id = ? "
+                "UNION SELECT id FROM post_hire_deposits WHERE razorpay_payment_id = ? "
+                "UNION SELECT id FROM course_payments WHERE razorpay_payment_id = ?",
+                (payment_id, payment_id, payment_id)
+            ).fetchone()
+
+            if existing_pay:
+                return jsonify({"status": "success", "message": "Payment already processed.", "redirect": "/portal"})
+
+            acct = conn.execute("SELECT * FROM intern_accounts WHERE email=? LIMIT 1", (email,)).fetchone()
+            if not acct:
+                return jsonify({"status": "error", "message": "Intern account not found."}), 404
+
+            app_row = conn.execute("SELECT * FROM applications WHERE LOWER(email)=? ORDER BY id DESC LIMIT 1", (email,)).fetchone()
+            now = now_str()
+
+            if product_type == "security_deposit":
+                batch_label = make_batch_label(joining_date) if joining_date else ""
+                domain_to_save = domain or (app_row["domain"] if app_row else "")
+                conn.execute(
+                    """
+                    INSERT INTO enrollments (
+                        application_id, timestamp, name, email, phone, city, college,
+                        course, semester, year_of_passing, domain, joining_date,
+                        batch_label, payment_screenshot, payment_status, product,
+                        amount, razorpay_order_id, razorpay_payment_id, razorpay_signature
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'razorpay_verified', 'Accepted', 'free_deposit', ?, ?, ?, ?)
+                    """,
+                    (
+                        app_row["id"] if app_row else None, now, acct["name"], email,
+                        acct["phone"], acct["city"], acct["college"], acct["course"],
+                        acct["semester"], acct["year_of_passing"], domain_to_save,
+                        joining_date, batch_label, int(UPI_AMOUNT), order_id, payment_id, signature
+                    )
+                )
+                if app_row:
+                    try:
+                        transition_application(
+                            conn=conn,
+                            application_id=app_row["id"],
+                            target_status=STATUS_ENROLLED,
+                            actor="razorpay_gateway",
+                            actor_role="system",
+                            reason="Security deposit verified online via Razorpay",
+                            request_id=req_id
+                        )
+                    except ApplicationStateMachineError as sme:
+                        log_info("state_transition_skip", f"App {app_row['id']} transition in razorpay verify: {sme}")
+
+                conn.commit()
+                send_enrollment_confirmation_email(acct["name"], email, domain_to_save, joining_date)
+                return jsonify({"status": "success", "message": "Security deposit verified! Welcome to DBERT.", "redirect": "/portal"})
+
+            elif product_type == "paid_program":
+                batch_label = make_batch_label(joining_date) if joining_date else ""
+                domain_to_save = domain or (app_row["domain"] if app_row else "")
+                conn.execute(
+                    """
+                    INSERT INTO enrollments (
+                        application_id, timestamp, name, email, phone, city, college,
+                        course, semester, year_of_passing, domain, joining_date,
+                        batch_label, payment_screenshot, payment_status, product,
+                        amount, razorpay_order_id, razorpay_payment_id, razorpay_signature
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'razorpay_verified', 'Accepted', 'paid_program', ?, ?, ?, ?)
+                    """,
+                    (
+                        app_row["id"] if app_row else None, now, acct["name"], email,
+                        acct["phone"], acct["city"], acct["college"], acct["course"],
+                        acct["semester"], acct["year_of_passing"], domain_to_save,
+                        joining_date, batch_label, int(PAID_PROGRAM_AMOUNT), order_id, payment_id, signature
+                    )
+                )
+                if app_row:
+                    try:
+                        transition_application(
+                            conn=conn,
+                            application_id=app_row["id"],
+                            target_status=STATUS_PAID_ENROLLED,
+                            actor="razorpay_gateway",
+                            actor_role="system",
+                            reason="Paid program seat confirmed online via Razorpay",
+                            request_id=req_id
+                        )
+                    except ApplicationStateMachineError as sme:
+                        log_info("state_transition_skip", f"App {app_row['id']} transition in razorpay verify: {sme}")
+
+                conn.commit()
+                send_enrollment_confirmation_email(acct["name"], email, domain_to_save, joining_date)
+                return jsonify({"status": "success", "message": "Paid program payment confirmed!", "redirect": "/portal"})
+
+            elif product_type == "post_hire_deposit":
+                post_app_id = data.get("product_id")
+                conn.execute(
+                    """
+                    INSERT INTO post_hire_deposits (
+                        post_application_id, intern_id, post_id, amount,
+                        payment_screenshot, status, admin_note,
+                        created_at, updated_at,
+                        razorpay_order_id, razorpay_payment_id, razorpay_signature
+                    ) VALUES (?, ?, ?, 499, 'razorpay_verified', 'verified', 'Auto-verified via Razorpay', ?, ?, ?, ?, ?)
+                    """,
+                    (post_app_id, acct["id"], data.get("post_id", 0), now, now, order_id, payment_id, signature)
+                )
+                conn.commit()
+                return jsonify({"status": "success", "message": "Post-hire guarantee deposit received.", "redirect": "/portal"})
+
+            elif product_type == "course":
+                course_id = data.get("product_id")
+                course = conn.execute("SELECT id, title, price_inr FROM courses WHERE id=?", (course_id,)).fetchone()
+                conn.execute(
+                    """
+                    INSERT INTO course_payments (
+                        intern_id, course_id, course_title, amount,
+                        payment_screenshot, status, admin_note,
+                        created_at, updated_at,
+                        razorpay_order_id, razorpay_payment_id, razorpay_signature
+                    ) VALUES (?, ?, ?, ?, 'razorpay_verified', 'verified', 'Auto-verified via Razorpay', ?, ?, ?, ?, ?)
+                    """,
+                    (acct["id"], course_id, course["title"] if course else "", course["price_inr"] if course else 0, now, now, order_id, payment_id, signature)
+                )
+                conn.commit()
+                return jsonify({"status": "success", "message": "Course purchase verified.", "redirect": f"/courses/{course_id}"})
+
+            return jsonify({"status": "error", "message": "Unknown product type"}), 400
+
+    except razorpay_client.RazorpayError as re:
+        log_error("razorpay_verify", re)
+        return jsonify({"status": "error", "message": str(re)}), 400
+    except Exception as e:
+        log_error("razorpay_verify", e)
+        return jsonify({"status": "error", "message": "Payment processing error"}), 500
+
+
+@app.route("/api/payment/razorpay/webhook", methods=["POST"])
+def api_razorpay_webhook():
+    """
+    Idempotent webhook endpoint for asynchronous Razorpay events.
+    Validates X-Razorpay-Signature header against RAZORPAY_WEBHOOK_SECRET.
+    """
+    try:
+        sig = request.headers.get("X-Razorpay-Signature", "")
+        raw_body = request.data
+
+        # Verify webhook signature if secret configured
+        _, _, webhook_sec = razorpay_client.get_razorpay_keys()
+        if webhook_sec:
+            if not razorpay_client.verify_webhook_signature(raw_body, sig):
+                log_abuse(get_client_ip(), "/api/payment/razorpay/webhook", "bad_webhook_sig", "signature_mismatch")
+                return jsonify({"status": "error", "message": "Invalid webhook signature"}), 400
+
+        payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
+        event_id = payload.get("event_id") or payload.get("id") or str(uuid.uuid4())
+        event_type = payload.get("event", "unknown")
+
+        with get_db() as conn:
+            # Deduplicate via payment_events
+            existing = conn.execute("SELECT id FROM payment_events WHERE event_id=?", (event_id,)).fetchone()
+            if existing:
+                return jsonify({"status": "ok", "message": "Duplicate event ignored"}), 200
+
+            conn.execute(
+                "INSERT INTO payment_events (event_id, event_type, payload) VALUES (?, ?, ?)",
+                (event_id, event_type, json.dumps(payload))
+            )
+            conn.commit()
+
+        log_info("razorpay_webhook_event", f"Processed event {event_type} id={event_id}")
+        return jsonify({"status": "ok"}), 200
+    except Exception as e:
+        log_error("razorpay_webhook", e)
+        return jsonify({"status": "error", "message": "Webhook error"}), 500
+
+
+
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # ATTENDANCE
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -13129,12 +13466,20 @@ def admin_update_application_status():
             if old_status == new_status:
                 return jsonify({"status": "success", "message": f"Status is already {new_status}."})
             rejected_at_val = now_str() if new_status == STATUS_REJECTED else app_row["rejected_at"]
-            # DATA-001: atomic state transition
-            res = conn.execute(
-                "UPDATE applications SET status=?,mentor_note=?,reviewed_at=?,rejected_at=?,updated_at=? WHERE id=? AND status=?",
-                (new_status, note, now_str(), rejected_at_val, now_str(), app_id, old_status))
-            if res.rowcount == 0:
+            # DATA-001: atomic state transition via application state machine
+            try:
+                transition_application(
+                    conn=conn,
+                    application_id=app_id,
+                    target_status=new_status,
+                    actor="admin",
+                    actor_role="admin",
+                    reason=note
+                )
+            except ConcurrentModificationError:
                 return jsonify({"status": "error", "message": "Application status changed concurrently."}), 409
+            except ApplicationStateMachineError as sme:
+                return jsonify({"status": "error", "message": str(sme)}), 400
             if new_status == STATUS_ACCEPTED:
                 joining_date_for_email = auto_assign_joining_date_on_accept(conn, app_row)
                 acct_m = conn.execute("SELECT id FROM intern_accounts WHERE LOWER(email)=? LIMIT 1", (app_row["email"].lower(),)).fetchone()
