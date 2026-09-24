@@ -22,7 +22,7 @@ def app_client():
     
     # Disable CSRF globally during tests by adding everything to exempt list
     from app import CSRF_EXEMPT_ENDPOINTS
-    CSRF_EXEMPT_ENDPOINTS.update(["intern_login", "company_login", "forgot_password", "reset_password", "check_email", "admin_reset_intern_password", "intern_book_slot", "cohort_enroll", "staff_project_decision", "staff_login", "admin_login", "mentor_login", "logout", "api_razorpay_create_order", "api_razorpay_verify_payment", "api_razorpay_webhook", "apply", "signup_stage1", "company_signup", "portal_cv_save", "task_submit", "intern_update_profile", "messages_send", "enroll", "intern_save_wizard_step"])
+    CSRF_EXEMPT_ENDPOINTS.update(["intern_login", "company_login", "forgot_password", "reset_password", "check_email", "admin_reset_intern_password", "intern_book_slot", "cohort_enroll", "staff_project_decision", "staff_login", "admin_login", "mentor_login", "logout", "api_razorpay_create_order", "api_razorpay_verify_payment", "api_razorpay_webhook", "apply", "signup_stage1", "company_signup", "portal_cv_save", "task_submit", "intern_update_profile", "messages_send", "enroll", "intern_save_wizard_step", "company_post_save", "company_post_publish", "company_post_unpublish", "company_post_delete", "admin_company_approve", "admin_company_suspend", "post_apply", "company_app_status"])
 
     with _app.app_context():
         init_db()
@@ -59,13 +59,13 @@ def seed_intern(db_path, email="test_intern99@test.com", password="TestPass123",
         return conn.execute("SELECT id FROM intern_accounts WHERE email=?", (email,)).fetchone()["id"]
 
 
-def seed_company(db_path, email="test_comp99@test.com", password="CompPass123", name="Test Corp"):
+def seed_company(db_path, email="test_comp99@test.com", password="CompPass123", name="Test Corp", is_approved=1, is_active=1):
     os.environ["DB_FILE"] = db_path
     with get_db() as conn:
         conn.execute(
             "INSERT OR IGNORE INTO companies "
-            "(name, email, password_hash, is_active, is_approved) VALUES (?,?,?,1,1)",
-            (name, email, set_password_hash(password))
+            "(name, email, password_hash, is_active, is_approved) VALUES (?,?,?,?,?)",
+            (name, email, set_password_hash(password), is_active, is_approved)
         )
         conn.commit()
         return conn.execute("SELECT id FROM companies WHERE email=?", (email,)).fetchone()["id"]

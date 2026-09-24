@@ -65,9 +65,15 @@
 - [x] GOLD-001 Complete applicant lifecycle E2E automation (Visitor -> Signup -> Application -> Review -> Selection -> Enrollment -> Payment -> Course -> Task -> Certificate -> Public Verification) (`tests/test_golden_journey.py`)
 - [x] GOLD-002 Golden path test suite with strict state gates and non-existent cert verification checks
 
-## P1 — Session 6: Marketplace / Job Board Verification (NEXT)
+## P1 — Session 6: Marketplace / Job Board Verification (COMPLETE)
 
-- [ ] MKT-001 Company registration, verification, approval, and suspension lifecycle
-- [ ] MKT-002 Job listing lifecycle (draft, publish, expire, close)
-- [ ] MKT-003 Candidate job application flow (apply, shortlist, interview, hire)
-- [ ] MKT-004 Live database-backed inventory counts (no hardcoded counts) and expired listing CTA suppression
+- [x] MKT-001 Company registration, approval, suspension, and authorization controls (`tests/test_marketplace.py`)
+- [x] MKT-002 Job listing lifecycle: draft, Google-for-Jobs 100-character description completeness gate, publish, atomic max 3 live posts guard, unpublish, expire
+- [x] MKT-003 Candidate job application flow: anonymous 401 guard, candidate apply, idempotent re-apply, company applicant review, status progression (Shortlisted, Hired)
+- [x] MKT-004 Live database-backed inventory counts (`live_openings_total()`), draft/suspension exclusions, expired listing CTA suppression (410 Gone)
+
+## P1 — Session 7: Email / Event Outbox & Failure Resilience (NEXT)
+
+- [ ] OUT-001 Email/Event outbox table & transaction-safe decoupled queuing
+- [ ] OUT-002 Outbox worker daemon with exponential backoff & dead-letter queue
+- [ ] OUT-003 Failure isolation: critical user transactions succeed even when SMTP fails

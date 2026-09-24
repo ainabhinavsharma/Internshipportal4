@@ -46,4 +46,8 @@
 | `services/application_service.py` | Updated `VALID_APP_TRANSITIONS` for `STATUS_ENROLLMENT_PENDING` | Allow `STATUS_ACCEPTED` directly from `STATUS_ENROLLMENT_PENDING` upon admin verification | Phase 6 & 12 | Low | 93/93 passed |
 | `app.py` | Updated `VALID_APP_TRANSITIONS` for `Enrollment Pending` | Keep transition map consistent with `application_service.py` | Phase 6 & 12 | Low | 93/93 passed |
 | `tests/conftest.py` | Added `enroll` and `intern_save_wizard_step` to CSRF exemption list | Facilitates clean E2E testing of applicant enrollment and wizard state progression | Test | Zero | 93/93 passed |
+| `tests/test_marketplace.py` | New Marketplace & Job Board test suite | 7 test cases covering company lifecycle, post lifecycle, candidate applications, live inventory counts (MKT-001 - MKT-004) | Phase 13 | Zero | 7/7 passed |
+| `app.py` | Updated `_is_live_post()` to enforce `is_approved=1` and `is_active=1` on company | Closes security loophole where suspended companies' posts could still be accessed or applied to directly | Phase 13 | Low | 100/100 passed |
+| `tests/conftest.py` | Added marketplace endpoints to CSRF exemptions and `is_approved`/`is_active` to `seed_company` | Enables automated company approval/suspension lifecycle testing | Test | Zero | 100/100 passed |
+
 

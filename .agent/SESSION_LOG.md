@@ -203,3 +203,37 @@
 ### Next Steps / Session 6 Transition
 - Session 6: Phase 13 (Marketplace / Job Board Verification).
 
+---
+
+## Session 6: Marketplace / Job Board Verification
+- Date: 2026-09-25
+- Time: 02:25
+- Trigger: User approved proceeding into Session 6.
+- Focus: Phase 13 (Marketplace & Job Board Verification).
+
+### Completed Work
+1. **Security & State Consistency Enforcement in `_is_live_post()`**:
+   - Fixed `_is_live_post()` in `app.py` to verify that the publishing company is approved (`is_approved == 1`) and active (`is_active == 1`).
+   - Closed a vulnerability where direct deep-link hits on `/jobs/<slug>-<post_id>` or direct `POST /posts/<id>/apply` previously bypassed company suspension and served HTTP 200 instead of HTTP 410 (Gone) / HTTP 400.
+2. **Marketplace Automated Test Suite (`tests/test_marketplace.py`)**:
+   - Authored 7 comprehensive tests across 4 key test classes:
+     - `TestMarketplaceCompanyLifecycle`:
+       - `test_company_registration_and_initial_unapproved_state`: validates signup, default `is_approved=0`, and 403 block on publishing.
+       - `test_admin_approval_and_suspension_controls`: validates admin approval unlocking publish rights, admin suspension immediately dropping posts from public directories, deep link 410 Gone, and un-suspension restoration.
+     - `TestMarketplaceListingLifecycle`:
+       - `test_completeness_gate_and_publishing_lifecycle`: Google-for-Jobs 100-character description gate, draft 404, publish + 30-day expiry, unpublish 410 Gone.
+       - `test_maximum_3_live_posts_concurrency_guard`: enforces atomic 409 conflict when publishing a 4th concurrent post.
+     - `TestMarketplaceCandidateApplicationFlow`:
+       - `test_candidate_apply_and_status_progression`: anonymous 401 `login_required`, candidate application, idempotent re-apply, company applicant review, status progression (`Shortlisted`, `Hired`).
+       - `test_expired_listing_rejects_application_and_hides_cta`: expired posts abort with 410 Gone and reject applications with 400.
+     - `TestMarketplaceLiveDatabaseCounts`:
+       - `test_live_openings_total_tracks_real_database_state`: dynamic `live_openings_total()` derived from `_LIVE_SQL` (90% discount), draft exclusion, suspended company exclusion.
+3. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **100 passed, 6 deselected in 160.70s (100% pass rate)**.
+   - Zero tracked secrets/databases confirmed via `python scripts/verify_env_safety.py`.
+   - Zero critical database integrity violations confirmed via `python scripts/check_data_integrity.py`.
+
+### Next Steps / Session 7 Transition
+- Session 7: Phase 14 (Email / Event Outbox & Failure Resilience).
+
+

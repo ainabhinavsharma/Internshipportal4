@@ -9718,15 +9718,24 @@ def _safe_portal_next(raw):
 
 
 def _is_live_post(post):
-    if post["status"] != "published":
+    p = dict(post) if not isinstance(post, dict) else post
+    if p.get("status") != "published":
         return False
-    exp = post["expires_at"]
-    if exp:
-        with get_db() as conn:
+    exp = p.get("expires_at")
+    with get_db() as conn:
+        if exp:
             still = conn.execute(
                 "SELECT ? > datetime('now','localtime')", (exp,)
             ).fetchone()[0]
-        return bool(still)
+            if not still:
+                return False
+        comp_id = p.get("company_id")
+        if comp_id:
+            comp = conn.execute(
+                "SELECT is_approved, is_active FROM companies WHERE id=?", (comp_id,)
+            ).fetchone()
+            if not comp or not comp["is_approved"] or not comp["is_active"]:
+                return False
     return True
 
 
