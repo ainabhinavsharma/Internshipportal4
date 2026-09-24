@@ -162,3 +162,44 @@
 
 ### Next Steps / Session 5 Transition
 - Session 5: Phase 12 (Golden Applicant Journey E2E Automation).
+
+---
+
+## Session 5: Golden Applicant Journey E2E Automation
+- Date: 2026-09-25
+- Time: 02:05
+- Trigger: User approved proceeding into Session 5.
+- Focus: Phase 12 (Golden Applicant Journey E2E Automation).
+
+### Completed Work
+1. **Application State Machine Transition Fix**:
+   - Discovered that when an enrollment was accepted by an admin via `transition_enrollment()`, the underlying application transition to `STATUS_ACCEPTED` was blocked because `STATUS_ACCEPTED` was missing from `VALID_APP_TRANSITIONS[STATUS_ENROLLMENT_PENDING]`.
+   - Updated `services/application_service.py` and `app.py` to allow `STATUS_ACCEPTED` directly from `STATUS_ENROLLMENT_PENDING`.
+2. **15-Step Golden Applicant Journey Automation (`tests/test_golden_journey.py`)**:
+   - Authored comprehensive lifecycle automation covering all 15 stages:
+     1. Visitor homepage landing (`/`)
+     2. Candidate signup (`/signup/stage1`)
+     3. Internship application submission (`/apply`)
+     4. Candidate login (`/login`)
+     5. Under Review wizard status (`/intern/wizard-status`, payment locked)
+     6. Mentor/Admin review & selection via state machine (`transition_application()` -> `Selected`)
+     7. Candidate sees selection & payment unlocks (`/intern/me`, `can_upload_payment: true`)
+     8. Enrollment submission (`/enroll` with dynamic Monday validation & receipt upload)
+     9. Admin payment verification & state machine transition (`transition_enrollment()` -> `Accepted`, syncs application -> `Accepted`)
+     10. Active internship status & automatic domain course enrollment (`/intern/me` auto course enrollments)
+     11. Task discovery & details view (`/tasks/<id>`)
+     12. Task submission (`/tasks/<id>/submit`)
+     13. Staff review, approval, and coin reward allocation
+     14. Certificate issuance and verification in candidate portal (`/intern/certificates`)
+     15. Public third-party recruiter verification of issued certificate (`/portal/certificate/<uuid>`)
+3. **Strict State Gates Verification**:
+   - Verified that applicants in 'Under Review' status are blocked (403 Forbidden) from submitting tasks prematurely.
+   - Verified that non-existent certificate IDs return 404.
+4. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **93 passed, 6 deselected in 159.88s (100% pass rate)**.
+   - Zero tracked secrets/databases confirmed via `python scripts/verify_env_safety.py`.
+   - Zero critical database integrity violations confirmed via `python scripts/check_data_integrity.py`.
+
+### Next Steps / Session 6 Transition
+- Session 6: Phase 13 (Marketplace / Job Board Verification).
+

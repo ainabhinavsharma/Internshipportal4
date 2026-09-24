@@ -60,7 +60,14 @@
 - [x] IDOR-002 IDOR test suite covering intern profiles, documents, tasks, and payments (`tests/test_idor_matrix.py`)
 - [x] IDOR-003 Vertical privilege escalation defenses (intern/company/mentor blocks from admin/staff)
 
-## P1 — Session 5: Golden Applicant Journey (NEXT)
+## P1 — Session 5: Golden Applicant Journey (COMPLETE)
 
-- [ ] GOLD-001 Complete applicant lifecycle E2E automation (Visitor -> Signup -> Application -> Review -> Selection -> Enrollment -> Payment -> Portal onboarding)
-- [ ] GOLD-002 Golden path test suite with verifiable state checkpoints
+- [x] GOLD-001 Complete applicant lifecycle E2E automation (Visitor -> Signup -> Application -> Review -> Selection -> Enrollment -> Payment -> Course -> Task -> Certificate -> Public Verification) (`tests/test_golden_journey.py`)
+- [x] GOLD-002 Golden path test suite with strict state gates and non-existent cert verification checks
+
+## P1 — Session 6: Marketplace / Job Board Verification (NEXT)
+
+- [ ] MKT-001 Company registration, verification, approval, and suspension lifecycle
+- [ ] MKT-002 Job listing lifecycle (draft, publish, expire, close)
+- [ ] MKT-003 Candidate job application flow (apply, shortlist, interview, hire)
+- [ ] MKT-004 Live database-backed inventory counts (no hardcoded counts) and expired listing CTA suppression

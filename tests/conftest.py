@@ -22,7 +22,7 @@ def app_client():
     
     # Disable CSRF globally during tests by adding everything to exempt list
     from app import CSRF_EXEMPT_ENDPOINTS
-    CSRF_EXEMPT_ENDPOINTS.update(["intern_login", "company_login", "forgot_password", "reset_password", "check_email", "admin_reset_intern_password", "intern_book_slot", "cohort_enroll", "staff_project_decision", "staff_login", "admin_login", "mentor_login", "logout", "api_razorpay_create_order", "api_razorpay_verify_payment", "api_razorpay_webhook", "apply", "signup_stage1", "company_signup", "portal_cv_save", "task_submit", "intern_update_profile", "messages_send"])
+    CSRF_EXEMPT_ENDPOINTS.update(["intern_login", "company_login", "forgot_password", "reset_password", "check_email", "admin_reset_intern_password", "intern_book_slot", "cohort_enroll", "staff_project_decision", "staff_login", "admin_login", "mentor_login", "logout", "api_razorpay_create_order", "api_razorpay_verify_payment", "api_razorpay_webhook", "apply", "signup_stage1", "company_signup", "portal_cv_save", "task_submit", "intern_update_profile", "messages_send", "enroll", "intern_save_wizard_step"])
 
     with _app.app_context():
         init_db()

@@ -3533,7 +3533,7 @@ VALID_APP_TRANSITIONS = {
     "Under Review":        {"On Hold", "Selected", "Rejected"},
     "On Hold":             {"Under Review", "Selected", "Rejected"},
     "Selected":            {"Enrollment Pending", "Rejected"},
-    "Enrollment Pending":  {"Enrolled", "Selected", "Rejected"},
+    "Enrollment Pending":  {"Enrolled", "Accepted", "Selected", "Rejected"},
     "Enrolled":            {"Accepted", "Enrollment Pending", "Rejected"},
     "Accepted":            {"Enrolled", "Rejected"},
     "Paid - Enrolled":     {"Accepted", "Rejected"},

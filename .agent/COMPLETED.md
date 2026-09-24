@@ -39,3 +39,6 @@
 | `AUTH-004` | 2026-09-25 | Back-button cache denial headers on authenticated paths | Header verification | `app.py` | None | Prevents post-logout history peek | `no-store, no-cache` |
 | `IDOR-001` | 2026-09-25 | Horizontal cross-user isolation test suite | Pytest (14 tests) | `tests/test_idor_matrix.py` | None | Strict Anti-IDOR enforcement | 14/14 tests passed |
 | `IDOR-002` | 2026-09-25 | Vertical privilege escalation blocks (non-admin to admin) | Pytest RBAC tests | `tests/test_idor_matrix.py` | None | Complete non-admin isolation | 100% blocked |
+| `GOLD-001` | 2026-09-25 | Complete 15-step golden applicant journey test suite | Pytest E2E lifecycle test | `tests/test_golden_journey.py`, `services/application_service.py`, `app.py`, `tests/conftest.py` | Allows Accepted directly from Enrollment Pending | End-to-end applicant lifecycle verification | Passed 100% |
+| `GOLD-002` | 2026-09-25 | Strict state gates and non-existent certificate error test | Pytest boundary gate test | `tests/test_golden_journey.py` | None | Prevents premature task submissions & invalid cert validation | Passed 100% |
+

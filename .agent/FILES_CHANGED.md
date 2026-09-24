@@ -42,3 +42,8 @@
 | `tests/test_idor_matrix.py` | Horizontal authorization and IDOR test suite | 14 test cases covering intern cross-user isolation, company isolation, and admin privilege escalation blocks | Phase 11 | Zero | 14/14 passed |
 | `app.py` | Added duplicate phone registration validation to `/signup/stage1`, `/apply`, `/company/signup`; added anti-back-button `Cache-Control: no-store` headers to authenticated paths; testing timing-token bypass | Prevent duplicate phone account collision, history cache leaks, and enable automated testing | Phase 10 & 11 | Low | 91/91 passed |
 | `tests/conftest.py` | Added `seed_mentor` / `login_as_mentor`, added signup & mutation endpoints to CSRF exemption list | Standardize mentor testing and allow direct test client requests | Harness | Zero | 91/91 passed |
+| `tests/test_golden_journey.py` | New Golden Applicant Journey test suite | Automates 15-step end-to-end lifecycle and strict gate checks (GOLD-001, GOLD-002) | Phase 12 | Zero | 2/2 passed |
+| `services/application_service.py` | Updated `VALID_APP_TRANSITIONS` for `STATUS_ENROLLMENT_PENDING` | Allow `STATUS_ACCEPTED` directly from `STATUS_ENROLLMENT_PENDING` upon admin verification | Phase 6 & 12 | Low | 93/93 passed |
+| `app.py` | Updated `VALID_APP_TRANSITIONS` for `Enrollment Pending` | Keep transition map consistent with `application_service.py` | Phase 6 & 12 | Low | 93/93 passed |
+| `tests/conftest.py` | Added `enroll` and `intern_save_wizard_step` to CSRF exemption list | Facilitates clean E2E testing of applicant enrollment and wizard state progression | Test | Zero | 93/93 passed |
+
