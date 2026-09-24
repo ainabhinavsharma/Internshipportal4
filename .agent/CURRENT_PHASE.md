@@ -1,35 +1,33 @@
 # Current Phase
 
-Phase: Session 6 (Phase 13 Marketplace & Job Board Verification)
+Phase: Session 7 (Phase 14 Email / Event Outbox & Failure Resilience)
 Master Plan: INTERNSHIPPORTAL4_LOCAL_AI_AGENT_MASTER_PLAN.md
 Target Remote: https://github.com/ainabhinavsharma/Internshipportal4.git
-Status: COMPLETE (Phase 13 Gates Passed)
+Status: COMPLETE (Phase 14 Gates Passed)
 
 Current Task:
-Commit and push Session 6 deliverables to Internshipportal4, prepare Session 7 (Phase 14 Email / Event Outbox)
+Commit and push Session 7 deliverables to Internshipportal4, prepare Session 8 (Phase 15 File Security & Upload Sandbox)
 
-Completed in Session 6:
-- MKT-001: Company lifecycle verified (Registration -> Initial unapproved state -> Admin approval -> Admin suspension and reactivation)
-- MKT-002: Job listing lifecycle verified (Draft state -> Google-for-Jobs 100-character description gate -> Publish with 30-day expiry -> Atomic max 3 live posts concurrency guard -> Unpublish -> Soft delete)
-- MKT-003: Candidate application lifecycle verified (Anonymous 401 login_required -> Candidate apply with comment -> Idempotent re-apply -> Company applicant review -> Status transitions: Shortlisted, Hired -> Cert gate validation)
-- MKT-004: Live inventory counts verified (live_openings_total() derived from _LIVE_SQL, draft exclusion, company suspension exclusion, expired/unpublished 410 suppression with zero active CTAs)
-- SEC-FIX: Fixed `_is_live_post()` in `app.py` to strictly enforce company approval (`is_approved=1`) and active status (`is_active=1`), closing a loophole where suspended companies' posts previously returned 200 on direct deep links
-- Full regression test suite passing: **100/100 tests passed (100%)**
+Completed in Session 7:
+- OUT-001: Transactional event outbox engine implemented (`services/outbox_service.py`), supporting all 11 Master Plan event types and all 5 lifecycle states (PENDING, SENT, RETRYING, FAILED, DEAD_LETTER). Added `event_outbox` DDL to `init_db()` in `app.py`. Wired atomic event enqueuing into `/apply`, `/signup/stage3`, `/enroll`, and task review.
+- OUT-002: Batch processor daemon implemented with exponential backoff (`process_outbox_batch`), dead-letter queueing upon max retry exhaustion, and manual/automated dead-letter replay (`replay_dead_letters`).
+- OUT-003: Failure isolation verified: user business operations (applicant registration, state machine transitions, enrollment approvals) succeed completely even when downstream SMTP servers or email services are completely unreachable or crashing.
+- Full regression test suite passing: **111/111 tests passed (100%)**
 - Environment & Database Integrity safety verified: 0 tracked secrets, 0 databases, 0 P0 data corruption
 
 In Progress:
-- Commit and push Session 6 deliverables to `origin/main` (`Internshipportal4`)
+- Commit and push Session 7 deliverables to `origin/main` (`Internshipportal4`)
 
 Blocked:
 - None
 
 Next Phase:
-- Session 7: Phase 14 (Email / Event Outbox: asynchronous queue, transaction safety, retry logic)
+- Session 8: Phase 15 (File Security & Upload Sandbox audit: CVs, receipts, profile photos, capstone files, MIME/magic byte enforcement, anti-path traversal)
 
 Last Verified:
-2026-09-25 02:30
+2026-09-25 02:42
 
 Last Test Result:
-- `pytest -v -k "not chromium"` -> 100 passed, 6 deselected in 160.70s (100% pass)
+- `pytest -v -k "not chromium"` -> 111 passed, 6 deselected in 173.29s (100% pass)
 - `python scripts/verify_env_safety.py` -> 0 tracked secrets, 0 databases
 - `python scripts/check_data_integrity.py` -> 0 critical issues

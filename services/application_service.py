@@ -253,6 +253,32 @@ def transition_application(
         metadata=metadata
     )
 
+    # Phase 14: Emit transactional outbox event
+    try:
+        from services.outbox_service import (
+            enqueue_outbox_event,
+            EVENT_APPLICATION_SELECTED,
+            EVENT_APPLICATION_REJECTED,
+        )
+        if target_status == STATUS_SELECTED:
+            enqueue_outbox_event(
+                conn,
+                event_type=EVENT_APPLICATION_SELECTED,
+                aggregate_type="application",
+                aggregate_id=application_id,
+                payload={"email": row["email"], "name": row["name"], "domain": row["domain"], "status": target_status}
+            )
+        elif target_status == STATUS_REJECTED:
+            enqueue_outbox_event(
+                conn,
+                event_type=EVENT_APPLICATION_REJECTED,
+                aggregate_type="application",
+                aggregate_id=application_id,
+                payload={"email": row["email"], "name": row["name"], "domain": row["domain"], "status": target_status, "reason": reason}
+            )
+    except Exception:
+        pass
+
     return {
         "success": True,
         "application_id": application_id,

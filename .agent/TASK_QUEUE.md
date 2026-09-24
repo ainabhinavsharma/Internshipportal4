@@ -71,9 +71,14 @@
 - [x] MKT-002 Job listing lifecycle: draft, Google-for-Jobs 100-character description completeness gate, publish, atomic max 3 live posts guard, unpublish, expire
 - [x] MKT-003 Candidate job application flow: anonymous 401 guard, candidate apply, idempotent re-apply, company applicant review, status progression (Shortlisted, Hired)
 - [x] MKT-004 Live database-backed inventory counts (`live_openings_total()`), draft/suspension exclusions, expired listing CTA suppression (410 Gone)
+## P1 — Session 7: Email / Event Outbox & Failure Resilience (COMPLETE)
 
-## P1 — Session 7: Email / Event Outbox & Failure Resilience (NEXT)
+- [x] OUT-001 Email/Event outbox table & transaction-safe decoupled queuing (`services/outbox_service.py`, `app.py`)
+- [x] OUT-002 Outbox worker daemon with exponential backoff & dead-letter queue (`tests/test_outbox_resilience.py`)
+- [x] OUT-003 Failure isolation: critical user transactions succeed even when SMTP fails
 
-- [ ] OUT-001 Email/Event outbox table & transaction-safe decoupled queuing
-- [ ] OUT-002 Outbox worker daemon with exponential backoff & dead-letter queue
-- [ ] OUT-003 Failure isolation: critical user transactions succeed even when SMTP fails
+## P1 — Session 8: File Security & Upload Sandbox Audit (NEXT)
+
+- [ ] FILE-001 Upload sandbox validation audit (CVs, payment screenshots, avatar photos, capstone files)
+- [ ] FILE-002 MIME type, magic bytes, file size limits, and sanitization enforcement
+- [ ] FILE-003 Path traversal prevention & private file download authorization verification

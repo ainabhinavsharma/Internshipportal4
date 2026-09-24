@@ -45,5 +45,8 @@
 | `MKT-002` | 2026-09-25 | Job listing lifecycle & Google-for-Jobs completeness gate | Pytest validation & atomic limits | `tests/test_marketplace.py` | None | Atomic 3-post concurrency limit & required field compliance | Passed 100% |
 | `MKT-003` | 2026-09-25 | Candidate job application & company review progression | Pytest application tests | `tests/test_marketplace.py` | None | Re-apply idempotency & company candidate status progression | Passed 100% |
 | `MKT-004` | 2026-09-25 | Live database-backed inventory counts & expired CTA suppression | Pytest metrics & deep links | `tests/test_marketplace.py`, `app.py` | Fixed `_is_live_post()` to enforce active company | Zero hardcoded inventory & expired posts return 410 Gone | Passed 100% |
+| `OUT-001` | 2026-09-25 | Transactional event outbox engine & atomic event enqueuing | Pytest outbox decoupling tests | `services/outbox_service.py`, `app.py`, `services/application_service.py`, `services/enrollment_service.py` | Adds `event_outbox` table | Decouples business commits from network I/O | Passed 100% |
+| `OUT-002` | 2026-09-25 | Outbox batch processor daemon with exponential backoff & dead-letter replay | Worker unit tests | `services/outbox_service.py`, `tests/test_outbox_resilience.py` | None | Guarantees at-least-once asynchronous event delivery | Passed 100% |
+| `OUT-003` | 2026-09-25 | Failure isolation: application & enrollment transactions succeed even on total SMTP failure | Integration failure injection tests | `tests/test_outbox_resilience.py`, `app.py` | None | Eliminates 500 error cascades when external SMTP is down | Passed 100% |
 
 

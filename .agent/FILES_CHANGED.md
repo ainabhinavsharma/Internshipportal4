@@ -49,5 +49,11 @@
 | `tests/test_marketplace.py` | New Marketplace & Job Board test suite | 7 test cases covering company lifecycle, post lifecycle, candidate applications, live inventory counts (MKT-001 - MKT-004) | Phase 13 | Zero | 7/7 passed |
 | `app.py` | Updated `_is_live_post()` to enforce `is_approved=1` and `is_active=1` on company | Closes security loophole where suspended companies' posts could still be accessed or applied to directly | Phase 13 | Low | 100/100 passed |
 | `tests/conftest.py` | Added marketplace endpoints to CSRF exemptions and `is_approved`/`is_active` to `seed_company` | Enables automated company approval/suspension lifecycle testing | Test | Zero | 100/100 passed |
+| `services/outbox_service.py` | New Transactional Event Outbox service | Implements outbox enqueuing, batch processor daemon, exponential backoff, dead-letter tracking, and replay for all 11 Master Plan event types (OUT-001, OUT-002) | Phase 14 | Low | `pytest tests/test_outbox_resilience.py` (11/11 passed) |
+| `app.py` | Added `event_outbox` DDL in `init_db()`; decoupled email dispatching from user transactions; enqueued outbox events on application, enrollment, and staff task reviews | Guarantees business transaction durability regardless of SMTP health (OUT-001, OUT-003) | Phase 14 | Low | Full pytest suite (111/111 passed) |
+| `services/application_service.py` | Enqueued `application.selected` and `application.rejected` in `transition_application()` | Emits transactional outbox events upon application state machine transitions | Phase 14 | Very Low | Full pytest suite (111/111 passed) |
+| `services/enrollment_service.py` | Enqueued `payment.accepted` and `payment.rejected` in `transition_enrollment()`; fixed `name` in SELECT columns | Emits transactional outbox events upon enrollment state transitions | Phase 14 | Very Low | Full pytest suite (111/111 passed) |
+| `tests/test_outbox_resilience.py` | New Outbox & Failure Resilience test suite | 11 test cases covering transactional decoupling, batch processing, exponential backoff, dead-letter replay, and email failure isolation (OUT-001 - OUT-003) | Phase 14 | Zero | 11/11 passed |
+
 
 

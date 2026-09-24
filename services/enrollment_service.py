@@ -152,7 +152,7 @@ def transition_enrollment(
 
     # Fetch current enrollment
     row = conn.execute(
-        "SELECT id, application_id, email, domain, payment_status, product FROM enrollments WHERE id = ?",
+        "SELECT id, application_id, name, email, domain, payment_status, product FROM enrollments WHERE id = ?",
         (enrollment_id,)
     ).fetchone()
 
@@ -227,6 +227,32 @@ def transition_enrollment(
         request_id=request_id,
         metadata=metadata
     )
+
+    # Phase 14: Emit transactional outbox event
+    try:
+        from services.outbox_service import (
+            enqueue_outbox_event,
+            EVENT_PAYMENT_ACCEPTED,
+            EVENT_PAYMENT_REJECTED,
+        )
+        if target_status == ENROLLMENT_STATUS_ACCEPTED:
+            enqueue_outbox_event(
+                conn,
+                event_type=EVENT_PAYMENT_ACCEPTED,
+                aggregate_type="enrollment",
+                aggregate_id=enrollment_id,
+                payload={"email": row["email"], "name": row["name"], "domain": row["domain"], "status": target_status}
+            )
+        elif target_status == ENROLLMENT_STATUS_REJECTED:
+            enqueue_outbox_event(
+                conn,
+                event_type=EVENT_PAYMENT_REJECTED,
+                aggregate_type="enrollment",
+                aggregate_id=enrollment_id,
+                payload={"email": row["email"], "name": row["name"], "domain": row["domain"], "status": target_status, "reason": reason}
+            )
+    except Exception:
+        pass
 
     # Synchronize application status if requested
     synced_app_id = None

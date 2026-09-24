@@ -236,4 +236,49 @@
 ### Next Steps / Session 7 Transition
 - Session 7: Phase 14 (Email / Event Outbox & Failure Resilience).
 
+---
+
+## Session 7: Email / Event Outbox & Failure Resilience
+- Date: 2026-09-25
+- Time: 02:35
+- Trigger: User approved proceeding into next phase (Session 7).
+- Focus: Phase 14 (Email / Event Outbox & Failure Resilience).
+
+### Completed Work
+1. **Transactional Event Outbox Engine (`services/outbox_service.py`)**:
+   - Implemented `enqueue_outbox_event()` to insert events atomically within existing SQLite transactions.
+   - Built support for all 11 required Master Plan event types: `application.submitted`, `application.selected`, `application.rejected`, `enrollment.created`, `payment.submitted`, `payment.accepted`, `payment.rejected`, `mentor.assigned`, `task.assigned`, `task.reviewed`, and `certificate.issued`.
+   - Enforced all 5 lifecycle states: `PENDING`, `SENT`, `RETRYING`, `FAILED`, and `DEAD_LETTER`.
+   - Implemented `process_outbox_batch()` with exponential backoff (`base_backoff_seconds * (2 ** retry_count)`) and jitter.
+   - Implemented `replay_dead_letters()` for manual or automated recovery of dead-lettered events back into `PENDING` state.
+2. **Schema & Endpoint Decoupling (`app.py`, `application_service.py`, `enrollment_service.py`)**:
+   - Added `event_outbox` DDL to `init_db()` in `app.py`.
+   - Decoupled synchronous email dispatching from critical user-facing routes (`/apply`, `/signup/stage3`, `/enroll`, `staff_task_decision`).
+   - Wired transactional event outbox enqueuing into `transition_application()` and `transition_enrollment()`.
+   - Wrapped SMTP calls in non-blocking try/except blocks so downstream email server failures never fail applicant signup, payment, or enrollment workflows.
+3. **Outbox Resilience Automated Test Suite (`tests/test_outbox_resilience.py`)**:
+   - Authored 11 comprehensive tests across 3 key test classes:
+     - `TestOutboxTransactionalDecoupling`:
+       - `test_outbox_event_enqueued_in_transaction`: verifies atomic commit.
+       - `test_outbox_atomic_rollback`: verifies rolled-back DB transactions drop uncommitted outbox events.
+       - `test_all_11_master_plan_events_supported`: verifies schema constraints on all 11 event types.
+       - `test_invalid_event_type_rejected`: validates input validation error on arbitrary event strings.
+     - `TestOutboxWorkerAndStateTransitions`:
+       - `test_batch_processing_success_transitions_to_sent`: verifies transition to `SENT` with timestamp.
+       - `test_batch_processing_failure_retries_with_exponential_backoff`: verifies transition to `RETRYING` with future `next_retry_at`.
+       - `test_max_retries_exhaustion_transitions_to_dead_letter`: verifies transition to `DEAD_LETTER` after retry exhaustion.
+       - `test_replay_dead_letters`: verifies replay resetting event to `PENDING` and clearing error logs.
+     - `TestBusinessTransactionFailureIsolation`:
+       - `test_application_submission_succeeds_even_when_email_fails`: simulates complete SMTP server down, verifies applicant account created, returns 200, and enqueues outbox event.
+       - `test_application_state_machine_selected_emits_outbox_event`: verifies admin selection enqueues `application.selected`.
+       - `test_enrollment_state_machine_payment_accepted_emits_outbox_event`: verifies payment verification enqueues `payment.accepted`.
+4. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **111 passed, 6 deselected in 173.29s (100% pass rate)**.
+   - Zero tracked secrets/databases confirmed via `python scripts/verify_env_safety.py`.
+   - Zero critical database integrity violations confirmed via `python scripts/check_data_integrity.py`.
+
+### Next Steps / Session 8 Transition
+- Session 8: Phase 15 (File Security & Upload Sandbox Audit: CVs, payment receipts, avatars, capstones, MIME & magic bytes verification, anti-traversal).
+
+
 

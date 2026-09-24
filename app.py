@@ -1940,6 +1940,24 @@ def init_db():
                 metadata TEXT
             );
             CREATE INDEX IF NOT EXISTS idx_enr_status_hist_enr ON enrollment_status_history(enrollment_id);
+            -- Phase 14: Transactional Event Outbox table
+            CREATE TABLE IF NOT EXISTS event_outbox (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                event_type TEXT NOT NULL,
+                aggregate_type TEXT NOT NULL,
+                aggregate_id TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'PENDING',
+                retry_count INTEGER NOT NULL DEFAULT 0,
+                max_retries INTEGER NOT NULL DEFAULT 3,
+                next_retry_at TEXT,
+                last_error TEXT,
+                processed_at TEXT,
+                created_at TEXT DEFAULT (datetime('now','localtime')),
+                updated_at TEXT DEFAULT (datetime('now','localtime'))
+            );
+            CREATE INDEX IF NOT EXISTS idx_outbox_status_retry ON event_outbox(status, next_retry_at);
+            CREATE INDEX IF NOT EXISTS idx_outbox_aggregate ON event_outbox(aggregate_type, aggregate_id);
             -- T7: portal-side courses (admin/DBERT or company-authored), merged into
             -- _public_courses() alongside the tutor catalogue. Public-facing ids are
             -- offset by _PORTAL_COURSE_ID_OFFSET so they never collide with tutor ids
@@ -5750,6 +5768,18 @@ def staff_project_decision(submission_id):
                 "ON CONFLICT(intern_id, cert_id) DO NOTHING",
                 (sub["intern_id"], sub["course_id"], sub["course_title"], cert_uuid, now_str, cert_url, intern_email)
             )
+            # Phase 14: Transactional Outbox Event
+            try:
+                from services.outbox_service import enqueue_outbox_event, EVENT_CERTIFICATE_ISSUED
+                enqueue_outbox_event(
+                    conn,
+                    event_type=EVENT_CERTIFICATE_ISSUED,
+                    aggregate_type="certificate",
+                    aggregate_id=cert_uuid,
+                    payload={"intern_id": sub["intern_id"], "course_id": sub["course_id"], "cert_id": cert_uuid, "email": intern_email}
+                )
+            except Exception as oe:
+                log_error("outbox-cert", oe)
             conn.execute(
                 "UPDATE course_enrollments SET completed_at = COALESCE(completed_at, ?) WHERE (intern_id = ? OR (email IS NOT NULL AND LOWER(email) = LOWER(?))) AND course_id = ?",
                 (now_str, sub["intern_id"], intern_email or "", sub["course_id"])
@@ -6283,6 +6313,19 @@ def staff_task_decision(submission_id):
 
         if decision == "approved" and coins_awarded > 0:
             credit_intern_coins(conn, sub["intern_id"], coins_awarded, f"Task Reward: {sub['task_title']}", ref_id=submission_id, email=sub["intern_email"])
+
+        # Phase 14: Transactional Outbox Event
+        try:
+            from services.outbox_service import enqueue_outbox_event, EVENT_TASK_REVIEWED
+            enqueue_outbox_event(
+                conn,
+                event_type=EVENT_TASK_REVIEWED,
+                aggregate_type="task_submission",
+                aggregate_id=submission_id,
+                payload={"intern_id": sub["intern_id"], "email": sub["intern_email"], "decision": decision, "coins_awarded": coins_awarded}
+            )
+        except Exception as oe:
+            log_error("outbox-task-reviewed", oe)
 
         conn.commit()
 
@@ -7662,12 +7705,28 @@ def apply():
                 if github_url:
                     conn.execute("UPDATE intern_accounts SET github_url=? WHERE email=?", (github_url, email))
 
+            # Phase 14: Transactional Outbox Event
+            try:
+                from services.outbox_service import enqueue_outbox_event, EVENT_APPLICATION_SUBMITTED
+                enqueue_outbox_event(
+                    conn,
+                    event_type=EVENT_APPLICATION_SUBMITTED,
+                    aggregate_type="application",
+                    aggregate_id=application_id,
+                    payload={"name": name, "email": email, "domain": domain}
+                )
+            except Exception as oe:
+                log_error("outbox-apply", oe)
+
             conn.commit()
 
         # Auto-login
         token = create_session(email, "intern")
         link_device_to_email(visitor_id, email)
-        send_application_received_email(name, email, domain)
+        try:
+            send_application_received_email(name, email, domain)
+        except Exception as ee:
+            log_error("email-apply", ee)
         resp = make_response(jsonify({
             "status": "success",
             "message": "Application submitted!",
@@ -7923,10 +7982,27 @@ def signup_stage3():
                     github_url=COALESCE(NULLIF(?,''),github_url),
                     signup_stage=3,updated_at=? WHERE email=?
             """, (application_id, linkedin, github, now_str(), email))
+            # Phase 14: Transactional Outbox Event
+            if domain:
+                try:
+                    from services.outbox_service import enqueue_outbox_event, EVENT_APPLICATION_SUBMITTED
+                    enqueue_outbox_event(
+                        conn,
+                        event_type=EVENT_APPLICATION_SUBMITTED,
+                        aggregate_type="application",
+                        aggregate_id=application_id,
+                        payload={"name": acct["name"], "email": email, "domain": domain}
+                    )
+                except Exception as oe:
+                    log_error("outbox-stage3", oe)
+
             conn.commit()
 
         if domain:
-            send_application_received_email(acct["name"], email, domain)
+            try:
+                send_application_received_email(acct["name"], email, domain)
+            except Exception as ee:
+                log_error("email-stage3", ee)
         # Track 2 Â§3 acquisition funnel: resume at the Apply-Now post stashed when the
         # visitor was logged out (pitfall Â§9 â€” carried through ALL signup stages). It
         # lives on the auth-session row (stage1 persisted it; the flask-session cookie
@@ -11803,11 +11879,35 @@ def enroll():
             # Keep as STATUS_ENROLLMENT_PENDING (or current status if already PA).
             conn.execute("UPDATE applications SET status=?,updated_at=? WHERE id=?",
                          (STATUS_ENROLLMENT_PENDING, now_str(), app_row["id"]))
+
+            # Phase 14: Transactional Outbox Event
+            try:
+                from services.outbox_service import enqueue_outbox_event, EVENT_ENROLLMENT_CREATED, EVENT_PAYMENT_SUBMITTED
+                enqueue_outbox_event(
+                    conn,
+                    event_type=EVENT_ENROLLMENT_CREATED,
+                    aggregate_type="enrollment",
+                    aggregate_id=app_row["id"],
+                    payload={"name": acct["name"], "email": email, "domain": domain_to_save, "joining_date": joining_date}
+                )
+                enqueue_outbox_event(
+                    conn,
+                    event_type=EVENT_PAYMENT_SUBMITTED,
+                    aggregate_type="enrollment",
+                    aggregate_id=app_row["id"],
+                    payload={"name": acct["name"], "email": email, "amount": 499, "status": "Pending Verification"}
+                )
+            except Exception as oe:
+                log_error("outbox-enroll", oe)
+
             conn.commit()
 
-        send_enrollment_confirmation_email(acct["name"], email, domain_to_save, joining_date)
-        if old_status != STATUS_ENROLLED:
-            send_status_update_email(acct["name"], email, domain_to_save, STATUS_ENROLLED, "", joining_date)
+        try:
+            send_enrollment_confirmation_email(acct["name"], email, domain_to_save, joining_date)
+            if old_status != STATUS_ENROLLED:
+                send_status_update_email(acct["name"], email, domain_to_save, STATUS_ENROLLED, "", joining_date)
+        except Exception as ee:
+            log_error("email-enroll", ee)
         return jsonify({"status": "success", "message": "Enrollment submitted successfully."})
     except Exception as e:
         log_error("enroll", e)
