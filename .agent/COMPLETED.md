@@ -51,5 +51,9 @@
 | `FILE-001` | 2026-09-25 | Centralized file security service & upload sandbox audit | Security service unit tests | `services/file_security_service.py`, `app.py` | Whitelist PNG, JPG, PDF | Strict extension & magic byte validation | Passed 100% |
 | `FILE-002` | 2026-09-25 | Magic byte sniffing, active script/polyglot rejection, and CSV formula sanitization | Pytest upload sandbox tests | `services/file_security_service.py`, `tests/test_upload_sandbox.py` | None | Rejects embedded PHP, HTML/JS, Shell payloads | 19/19 tests passed |
 | `FILE-003` | 2026-09-25 | Anti-path-traversal and object-level download authorization (IDOR defense on `/uploads/<path:filename>`) | Pytest download authorization tests | `app.py`, `services/file_security_service.py` | None | Private files never accessible via unauthenticated/predictable URLs | Passed 100% |
+| `PRIV-001` | 2026-09-25 | Centralized privacy & field classification service | Unit tests & classification matrix | `services/privacy_service.py` | None | Classifies fields into PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE | Passed 100% |
+| `PRIV-002` | 2026-09-25 | Response serializer hardening & global sensitive field exclusion in `row_to_dict` | Integration tests | `app.py`, `services/privacy_service.py` | None | Drops password_hash, salt, tokens from public/user endpoints | Passed 100% |
+| `PRIV-003` | 2026-09-25 | Multi-role privacy access test suite across anonymous, intern, mentor, company, admin | Pytest multi-role privacy tests | `tests/test_privacy_field_classification.py` | None | Verifies strict privacy boundaries against private endpoints | 13/13 tests passed |
+
 
 

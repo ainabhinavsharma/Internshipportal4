@@ -532,8 +532,15 @@ def normalize_domain(raw):
     return None
 
 
-def row_to_dict(row):
+SENSITIVE_DB_FIELDS = frozenset({"password_hash", "salt", "token_hash", "secret_key"})
+
+def row_to_dict(row, exclude_sensitive=True):
+    if row is None:
+        return None
+    if exclude_sensitive:
+        return {k: row[k] for k in row.keys() if k not in SENSITIVE_DB_FIELDS}
     return {k: row[k] for k in row.keys()}
+
 
 
 def log_error(context, e): 
@@ -7327,7 +7334,7 @@ def intern_certificates_json():
 
 @app.route("/portal/certificate/<cert_id>")
 def portal_view_certificate(cert_id):
-    """View certificate verification page."""
+    """View certificate verification page with public PII sanitization."""
     with get_db() as conn:
         cert_row = conn.execute("""
             SELECT c.*, a.name, a.domain
@@ -7337,7 +7344,9 @@ def portal_view_certificate(cert_id):
         """, (cert_id,)).fetchone()
     if not cert_row:
         return render_template("cert_verify.html", cert=None, cert_id=cert_id), 404
-    return render_template("cert_verify.html", cert=dict(cert_row), cert_id=cert_id)
+    from services.privacy_service import serialize_public_certificate
+    cert_data = serialize_public_certificate(dict(cert_row))
+    return render_template("cert_verify.html", cert=cert_data, cert_id=cert_id)
 
 
 @app.route("/admin/ledger")
@@ -10917,6 +10926,10 @@ def intern_me():
                 except Exception:
                     reapply_info = {"days_left": 0, "can_reapply": True}
 
+        from services.privacy_service import filter_fields
+        safe_apps = [filter_fields("applications", row_to_dict(r), viewer_role="intern", is_owner=True) for r in apps]
+        safe_enr = filter_fields("enrollments", row_to_dict(enr), viewer_role="intern", is_owner=True) if enr else None
+
         return jsonify({
             "status": "success",
             "intern": {
@@ -10933,13 +10946,13 @@ def intern_me():
                 "learning_completion_pct": top_pct,
                 "signup_stage":     int(acct["signup_stage"] or 3),
             },
-            "applications": [row_to_dict(r) for r in apps],
+            "applications": safe_apps,
             "job_applications": [row_to_dict(r) for r in job_apps],
-            "enrollment":   row_to_dict(enr) if enr else None,
-            "joining_date": row_to_dict(enr).get("joining_date", "") if enr else "",
+            "enrollment":   safe_enr,
+            "joining_date": safe_enr.get("joining_date", "") if safe_enr else "",
             "internship_end_date": (
-                (datetime.strptime(row_to_dict(enr)["joining_date"], "%Y-%m-%d") + timedelta(days=60)).strftime("%Y-%m-%d")
-                if (enr and row_to_dict(enr).get("joining_date")) else ""
+                (datetime.strptime(safe_enr["joining_date"], "%Y-%m-%d") + timedelta(days=60)).strftime("%Y-%m-%d")
+                if (safe_enr and safe_enr.get("joining_date")) else ""
             ),
             "reapply_info": reapply_info,
             "upi_id":       UPI_ID,

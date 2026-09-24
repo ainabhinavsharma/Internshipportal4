@@ -83,8 +83,15 @@
 - [x] FILE-002 MIME type, magic bytes, file size limits, polyglot/script rejection, and CSV formula injection sanitization (`tests/test_upload_sandbox.py`)
 - [x] FILE-003 Path traversal prevention & private file download object-level authorization (IDOR defense on `/uploads/<path:filename>`)
 
-## P1 — Session 9: Privacy & Field Classification (NEXT)
+## P1 — Session 9: Privacy & Field Classification (COMPLETE)
 
-- [ ] PRIV-001 Field classification engine (PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE)
-- [ ] PRIV-002 API response serializer hardening (prevent raw user/database model leaks to public endpoints)
-- [ ] PRIV-003 Multi-role privacy access test suite (anonymous, other intern, mentor, company, admin)
+- [x] PRIV-001 Field classification engine (PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE) (`services/privacy_service.py`)
+- [x] PRIV-002 API response serializer hardening & default sensitive field stripping in `row_to_dict` (prevent raw user/database model leaks to public endpoints) (`app.py`, `services/privacy_service.py`)
+- [x] PRIV-003 Multi-role privacy access test suite (anonymous, other intern, mentor, company, admin) (`tests/test_privacy_field_classification.py`)
+
+## P1 — Session 10: UX Dead-End & Error Resolution Audit (NEXT)
+
+- [ ] UX-001 Navigation and empty state consistency audit (clear next steps on all 5 role dashboards)
+- [ ] UX-002 Comprehensive error handler audit (404, 401, 403, 500 friendly explanation templates)
+- [ ] UX-003 Dead-end detection test suite (verifying no loops, unhandled 500s, or dead CTA paths)
+

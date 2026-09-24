@@ -57,6 +57,10 @@
 | `services/file_security_service.py` | New File Security and Upload Sandbox service | Extension whitelisting, magic byte sniffing, polyglot script detection, path traversal defense, and object-level download authorization (FILE-001, FILE-002) | Phase 15 | Low | `pytest tests/test_upload_sandbox.py` (19/19 passed) |
 | `app.py` | Hardened `/uploads/<path:filename>` and `/admin/screenshot/<filename>` with anti-traversal, authentication, and object-level ownership checks; updated `sniff_upload_type` to use `sniff_magic_type` | Closes direct file download vulnerabilities and IDOR access to private user assets (FILE-003) | Phase 15 | Low | Full pytest suite (130/130 passed) |
 | `tests/test_upload_sandbox.py` | New File Security and Upload Sandbox test suite | 19 test cases covering extension whitelist, magic bytes, polyglot scripts, traversal, object download authorization, and CSV formula injection sanitization (FILE-001 - FILE-003) | Phase 15 | Zero | 19/19 passed |
+| `services/privacy_service.py` | New Privacy and Field Classification service | Field classification registry (PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE), PII masking (email/phone), public serializers (certificates/posts/companies), and role filtering (PRIV-001) | Phase 16 | Low | `pytest tests/test_privacy_field_classification.py` (13/13 passed) |
+| `app.py` | Enhanced `row_to_dict` with automatic sensitive key stripping; hardened `/portal/certificate/<cert_id>` and `/intern/me` serialization | Prevents accidental password_hash or internal note leakage across public and user endpoints (PRIV-002) | Phase 16 | Low | Full pytest suite (143/143 passed) |
+| `tests/test_privacy_field_classification.py` | New Privacy & Field Classification test suite | 13 test cases covering taxonomy, masking, serializers, and multi-role access against private endpoints (PRIV-001 - PRIV-003) | Phase 16 | Zero | 13/13 passed |
+
 
 
 

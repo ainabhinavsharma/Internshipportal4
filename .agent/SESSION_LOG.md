@@ -316,6 +316,41 @@
 ### Next Steps / Session 9 Transition
 - Session 9: Phase 16 (Privacy & Field Classification: PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE).
 
+---
+
+## Session 9: Privacy & Field Classification
+- Date: 2026-09-25
+- Time: 03:10
+- Trigger: User approved proceeding into Session 9.
+- Focus: Phase 16 (Privacy & Field Classification).
+
+### Completed Work
+1. **Centralized Privacy Service (`services/privacy_service.py`)**:
+   - Implemented `FieldClassification` taxonomy: `PUBLIC`, `PRIVATE`, `ADMIN_ONLY`, and `SENSITIVE`.
+   - Comprehensive model classification registry covering `intern_accounts`, `companies`, `applications`, `enrollments`, `posts`, `post_applications`, `mentors`, `staff_accounts`, `intern_certificates`, and `device_profiles`.
+   - Built `strip_sensitive_fields()` for recursive stripping of credentials (`password_hash`, `salt`, `token_hash`, `secret_key`, `api_key`).
+   - Built PII masking helpers: `mask_email()` and `mask_phone()`.
+   - Implemented role-based attribute filtering: `filter_fields(entity, data, viewer_role, is_owner)`.
+   - Dedicated public serializers: `serialize_public_certificate()`, `serialize_public_company()`, `serialize_public_post()`.
+2. **Serializer & Endpoint Hardening (`app.py`)**:
+   - Enhanced `row_to_dict()` with default exclusion of `SENSITIVE_DB_FIELDS` (`password_hash`, `salt`, `token_hash`, `secret_key`), preventing accidental credential leakage whenever database rows are converted to dictionaries.
+   - Hardened public certificate verification endpoint `/portal/certificate/<cert_id>` using `serialize_public_certificate()`, ensuring public views only display recipient name and course credentials without exposing user email, phone, or internal DB identifiers.
+   - Hardened `/intern/me` profile response using `filter_fields()` for applications and enrollments, ensuring internal staff notes (`admin_note`, `mentor_note`) and payment verification screenshots are not exposed to the intern.
+3. **Phase 16 Automated Test Suite (`tests/test_privacy_field_classification.py`)**:
+   - Authored 13 comprehensive tests:
+     - `TestFieldClassificationMatrix`: Validates classification taxonomy, universal sensitive key classification, recursive stripping of nested sensitive attributes, and email/phone PII masking.
+     - `TestEntitySerializersAndFiltering`: Verifies public certificate and company serializers drop private/sensitive fields, and verifies role boundary filtering between anonymous viewers, owning interns, and administrators.
+     - `TestMultiRolePrivateEndpointEnforcement`: Strict multi-role matrix tests verifying access controls and absence of credentials across `/intern/me`, `/company/profile`, `/company/posts/<post_id>/applicants`, `/admin/users`, and `/portal/certificate/<cert_id>`.
+   - **Result: 13/13 passed (100%)**.
+4. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **143 passed, 6 deselected in 260.37s (100% pass rate)**.
+   - Zero tracked secrets/databases confirmed via `python scripts/verify_env_safety.py`.
+   - Zero critical database integrity violations confirmed via `python scripts/check_data_integrity.py`.
+
+### Next Steps / Session 10 Transition
+- Session 10: Phase 17 (UX Dead-End & Error Resolution Audit).
+
+
 
 
 
