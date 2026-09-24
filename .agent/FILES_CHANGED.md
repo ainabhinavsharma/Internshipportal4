@@ -37,5 +37,8 @@
 | `docs/DATA_INTEGRITY_REPORT.md` | New database integrity report | Full breakdown of database health and anomalies (INT-002) | Phase 9 | Zero | Document inspection |
 | `services/enrollment_service.py` | New Enrollment State Machine service | Central transition function, state validation, and application sync (ENR-001) | Phase 7 | Low | `pytest tests/test_enrollment_state_machine.py` (7/7 passed) |
 | `tests/test_enrollment_state_machine.py` | New enrollment unit & integration test suite | Verify enrollment transitions, invalid jumps, unauthorized roles, concurrency (ENR-004) | Phase 7 | Zero | 7/7 passed |
-
-
+| `docs/ROLE_PERMISSION_MATRIX.md` | Role permission & anti-IDOR specification | Map all 5 roles, authorization checks, ownership constraints across all endpoints | Phase 11 | Zero | Document inspection |
+| `tests/test_auth_regression.py` | Multi-role authentication regression test suite | 20 test cases covering intern (email/phone), company, mentor, staff, admin login, password reset, back-button cache denial | Phase 10 | Zero | 20/20 passed |
+| `tests/test_idor_matrix.py` | Horizontal authorization and IDOR test suite | 14 test cases covering intern cross-user isolation, company isolation, and admin privilege escalation blocks | Phase 11 | Zero | 14/14 passed |
+| `app.py` | Added duplicate phone registration validation to `/signup/stage1`, `/apply`, `/company/signup`; added anti-back-button `Cache-Control: no-store` headers to authenticated paths; testing timing-token bypass | Prevent duplicate phone account collision, history cache leaks, and enable automated testing | Phase 10 & 11 | Low | 91/91 passed |
+| `tests/conftest.py` | Added `seed_mentor` / `login_as_mentor`, added signup & mutation endpoints to CSRF exemption list | Standardize mentor testing and allow direct test client requests | Harness | Zero | 91/91 passed |

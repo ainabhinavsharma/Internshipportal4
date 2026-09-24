@@ -22,7 +22,7 @@ def app_client():
     
     # Disable CSRF globally during tests by adding everything to exempt list
     from app import CSRF_EXEMPT_ENDPOINTS
-    CSRF_EXEMPT_ENDPOINTS.update(["intern_login", "company_login", "forgot_password", "reset_password", "check_email", "admin_reset_intern_password", "intern_book_slot", "cohort_enroll", "staff_project_decision", "staff_login", "admin_login", "mentor_login", "logout", "api_razorpay_create_order", "api_razorpay_verify_payment", "api_razorpay_webhook"])
+    CSRF_EXEMPT_ENDPOINTS.update(["intern_login", "company_login", "forgot_password", "reset_password", "check_email", "admin_reset_intern_password", "intern_book_slot", "cohort_enroll", "staff_project_decision", "staff_login", "admin_login", "mentor_login", "logout", "api_razorpay_create_order", "api_razorpay_verify_payment", "api_razorpay_webhook", "apply", "signup_stage1", "company_signup", "portal_cv_save", "task_submit", "intern_update_profile", "messages_send"])
 
     with _app.app_context():
         init_db()
@@ -148,6 +148,22 @@ def login_as_admin(client, db_path, email="test_admin99@test.com", password="Adm
     seed_staff(db_path, email, password, name)
     resp = client.post("/admin/login", json={"email": email, "password": password})
     assert resp.status_code in (200, 302), f"login_as_admin failed {resp.status_code}: {resp.data}"
+    return resp
+
+def seed_mentor(db_path, email="test_mentor99@test.com", password="MentorPass123", name="Test Mentor", domain="AI Agent Development"):
+    os.environ["DB_FILE"] = db_path
+    with get_db() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO mentors (name, email, domain, password_hash, is_active) VALUES (?, ?, ?, ?, 1)",
+            (name, email, domain, set_password_hash(password))
+        )
+        conn.commit()
+        return conn.execute("SELECT id FROM mentors WHERE email=?", (email,)).fetchone()["id"]
+
+def login_as_mentor(client, db_path, email="test_mentor99@test.com", password="MentorPass123", name="Test Mentor", domain="AI Agent Development"):
+    seed_mentor(db_path, email, password, name, domain)
+    resp = client.post("/mentor/login", json={"email": email, "password": password})
+    assert resp.status_code == 200, f"login_as_mentor failed {resp.status_code}: {resp.data}"
     return resp
 
 def logout(client):

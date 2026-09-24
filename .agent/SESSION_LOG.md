@@ -124,5 +124,41 @@
 ### Next Steps / Session 4 Transition
 - Session 4: Phase 10 (Authentication Regression Suite) & Phase 11 (Authorization / IDOR Matrix).
 
+## Session: 2026-09-25 (Session 4: Authentication Regression & IDOR Authorization Matrix)
 
+### Started
+- Time: 01:40
+- Trigger: User approved proceeding into Session 4.
+- Focus: Phase 10 (Authentication Regression Suite) & Phase 11 (Authorization / IDOR Matrix).
 
+### Completed Work
+1. **Role Permission & Anti-IDOR Matrix Specification (Phase 11)**:
+   - Authored `docs/ROLE_PERMISSION_MATRIX.md` defining all 6 security principles (`visitor`, `intern`, `company`, `mentor`, `staff`, `admin`), core access control gates, and complete horizontal ownership bindings across applications, enrollments, payments, CVs, certificates, messaging, tasks, and company jobs.
+2. **Identity & Back-Button Protection Enforcements**:
+   - Implemented duplicate phone validation in `app.py` across `/signup/stage1`, `/apply`, and `/company/signup` to prevent phone-based login account collisions.
+   - Implemented `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` in `_security_headers()` for all authenticated routes (`/portal`, `/admin`, `/staff`, `/company`, `/mentor`, `/intern`) to prevent browser back-button history inspection after logout.
+   - Updated `verify_timing_token()` to support automated testing in `TESTING` mode.
+3. **Multi-Role Authentication Regression Suite (`tests/test_auth_regression.py`)**:
+   - Authored 20 automated tests:
+     - Multi-role login: `intern` (via email and phone), `company`, `mentor`, `staff`, and `admin`.
+     - Rejection of invalid credentials and deactivated accounts.
+     - Rejection of duplicate email and duplicate phone during intern and company signup.
+     - Neutral password reset enumeration protection (indistinguishable response for registered vs unknown emails).
+     - Full password reset lifecycle: token validation, password update, expired token rejection, replay rejection, and old session revocation.
+     - Critical security journey: login -> access portal -> logout -> browser back -> authenticated access denied.
+     - Multi-tab concurrent session preservation and deep-link unauthenticated redirect.
+   - **Result: 20/20 passed (100%)**.
+4. **Horizontal Authorization & Anti-IDOR Suite (`tests/test_idor_matrix.py`)**:
+   - Authored 14 automated tests:
+     - Intern A vs Intern B isolation: private profile `/intern/me`, profile update, private CV view denial, conversation viewing/polling/posting denial, task submission isolation.
+     - Company A vs Company B isolation: dashboard post scoping, candidate isolation.
+     - Vertical privilege escalation blocks: interns, companies, and mentors strictly blocked from `/admin/*` and `/staff/*`.
+     - Anonymous visitor blocks on all role-protected endpoints.
+   - **Result: 14/14 passed (100%)**.
+5. **Full Regression Test Pass**:
+   - Executed full test suite: **91 passed in 206.95s (100% pass rate)**.
+   - Verified zero credentials/secrets or databases in git (`python scripts/verify_env_safety.py` clean).
+   - Verified zero database corruption (`python scripts/check_data_integrity.py` clean).
+
+### Next Steps / Session 5 Transition
+- Session 5: Phase 12 (Golden Applicant Journey E2E Automation).

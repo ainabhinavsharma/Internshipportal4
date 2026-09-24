@@ -32,5 +32,10 @@
 | `ENR-001` | 2026-09-25 | Central enrollment state machine service | Unit test suite | `services/enrollment_service.py` | None | Separates enrollment lifecycle | 7/7 tests passed |
 | `ENR-002` | 2026-09-25 | Audit history table `enrollment_status_history` in `init_db()` | Pytest & DB checks | `app.py` | Adds audit table | Complete traceability | Verified schema |
 | `ENR-003` | 2026-09-25 | Refactored `admin_update_enrollment_status` to use state machine | App routes & pytest | `app.py` | None | Concurrency & permission safe | 57/57 tests passed |
-
-
+| `AUTH-DOC` | 2026-09-25 | Role permission and anti-IDOR matrix specification | Documentation | `docs/ROLE_PERMISSION_MATRIX.md` | None | Clear access boundary map | Full matrix documented |
+| `AUTH-001` | 2026-09-25 | Multi-role authentication regression test suite | Pytest (20 tests) | `tests/test_auth_regression.py` | None | Multi-role & session regression safe | 20/20 tests passed |
+| `AUTH-002` | 2026-09-25 | Duplicate email & phone registration validation | Pytest & endpoint tests | `app.py` | None | Prevents account confusion/hijack | 100% verified |
+| `AUTH-003` | 2026-09-25 | Password reset lifecycle & session revocation | Pytest & DB tests | `tests/test_auth_regression.py` | None | Eliminates orphan active sessions | Verified on replay/expiry |
+| `AUTH-004` | 2026-09-25 | Back-button cache denial headers on authenticated paths | Header verification | `app.py` | None | Prevents post-logout history peek | `no-store, no-cache` |
+| `IDOR-001` | 2026-09-25 | Horizontal cross-user isolation test suite | Pytest (14 tests) | `tests/test_idor_matrix.py` | None | Strict Anti-IDOR enforcement | 14/14 tests passed |
+| `IDOR-002` | 2026-09-25 | Vertical privilege escalation blocks (non-admin to admin) | Pytest RBAC tests | `tests/test_idor_matrix.py` | None | Complete non-admin isolation | 100% blocked |

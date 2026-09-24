@@ -49,10 +49,18 @@
 - [x] ENR-003 Stale request & optimistic concurrency protection (`expected_status`)
 - [x] ENR-004 Enrollment state machine automated test suite (`tests/test_enrollment_state_machine.py`)
 
-## P1 — Session 4: Authentication Regression & IDOR Authorization (NEXT)
+## P1 — Session 4: Authentication Regression & IDOR Authorization (COMPLETE)
 
-- [ ] AUTH-001 End-to-end multi-role authentication regression suite (`tests/test_auth_regression.py`)
-- [ ] AUTH-002 Password reset & session invalidation regression coverage
-- [ ] IDOR-001 Horizontal authorization enforcement audit across all user routes
-- [ ] IDOR-002 IDOR test suite covering intern profiles, documents, tasks, and payments (`tests/test_idor_matrix.py`)
+- [x] AUTH-DOC Role Permission and IDOR Matrix specification (`docs/ROLE_PERMISSION_MATRIX.md`)
+- [x] AUTH-001 End-to-end multi-role authentication regression suite (`tests/test_auth_regression.py`)
+- [x] AUTH-002 Duplicate identity guards (email & phone uniqueness) in `app.py`
+- [x] AUTH-003 Password reset lifecycle (neutral enumeration, expiry, replay, old session revocation)
+- [x] AUTH-004 Back-button cache-control denial & session revocation in `app.py`
+- [x] IDOR-001 Horizontal authorization enforcement audit across all user routes
+- [x] IDOR-002 IDOR test suite covering intern profiles, documents, tasks, and payments (`tests/test_idor_matrix.py`)
+- [x] IDOR-003 Vertical privilege escalation defenses (intern/company/mentor blocks from admin/staff)
 
+## P1 — Session 5: Golden Applicant Journey (NEXT)
+
+- [ ] GOLD-001 Complete applicant lifecycle E2E automation (Visitor -> Signup -> Application -> Review -> Selection -> Enrollment -> Payment -> Portal onboarding)
+- [ ] GOLD-002 Golden path test suite with verifiable state checkpoints
