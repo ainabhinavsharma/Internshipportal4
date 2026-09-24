@@ -42,6 +42,15 @@ from services.application_service import (
     VALID_APP_TRANSITIONS,
 )
 import services.razorpay_client as razorpay_client
+from services.enrollment_service import (
+    transition_enrollment,
+    get_enrollment_history,
+    EnrollmentStateMachineError,
+    EnrollmentNotFoundError,
+    InvalidEnrollmentTransitionError,
+    UnauthorizedEnrollmentError,
+    ConcurrentEnrollmentModificationError,
+)
 
 
 try:
@@ -1916,6 +1925,19 @@ def init_db():
                 status TEXT DEFAULT 'processed'
             );
             CREATE INDEX IF NOT EXISTS idx_payment_events_eid ON payment_events(event_id);
+            -- Phase 7: Enrollment Status History table
+            CREATE TABLE IF NOT EXISTS enrollment_status_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                enrollment_id INTEGER NOT NULL,
+                old_status TEXT,
+                new_status TEXT NOT NULL,
+                changed_by TEXT,
+                changed_at TEXT DEFAULT (datetime('now','localtime')),
+                reason TEXT,
+                request_id TEXT,
+                metadata TEXT
+            );
+            CREATE INDEX IF NOT EXISTS idx_enr_status_hist_enr ON enrollment_status_history(enrollment_id);
             -- T7: portal-side courses (admin/DBERT or company-authored), merged into
             -- _public_courses() alongside the tutor catalogue. Public-facing ids are
             -- offset by _PORTAL_COURSE_ID_OFFSET so they never collide with tutor ids
@@ -13516,18 +13538,24 @@ def admin_update_enrollment_status():
                 return jsonify({"status": "success", "message": f"Payment status is already {nps}."})
             is_paid = (enr["product"] or "free_deposit") == "paid_program"
             reject_status = STATUS_PAID_ENROLLED if is_paid else STATUS_ENROLLMENT_PENDING
-            # DATA-001: atomic state machine transition
-            res = conn.execute("UPDATE enrollments SET payment_status=?,admin_note=?,updated_at=? WHERE id=? AND payment_status=?",
-                         (nps, note, now_str(), eid, ops))
-            if res.rowcount == 0:
+            # DATA-001: atomic state machine transition via enrollment state machine
+            try:
+                transition_enrollment(
+                    conn=conn,
+                    enrollment_id=eid,
+                    target_status=nps,
+                    actor="admin",
+                    actor_role="admin",
+                    reason=note,
+                    sync_application=True
+                )
+            except ConcurrentEnrollmentModificationError:
                 return jsonify({"status": "error", "message": "Enrollment status changed concurrently."}), 409
+            except EnrollmentStateMachineError as eme:
+                return jsonify({"status": "error", "message": str(eme)}), 400
+
             if nps == "Accepted":
-                conn.execute("UPDATE applications SET status=?,updated_at=? WHERE email=? AND domain=?",
-                             (STATUS_ACCEPTED, now_str(), enr["email"], enr["domain"]))
                 handle_enrollment_accepted(conn, eid)
-            elif nps == "Rejected":
-                conn.execute("UPDATE applications SET status=?,updated_at=? WHERE email=? AND domain=?",
-                             (reject_status, now_str(), enr["email"], enr["domain"]))
             conn.commit()
         if ops != nps:
             ed = row_to_dict(enr)

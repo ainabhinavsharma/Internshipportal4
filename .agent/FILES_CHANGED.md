@@ -33,4 +33,9 @@
 | `tests/test_application_state_machine.py` | New unit & integration test suite | Verify state machine transitions, invalid jumps, unauthorized actors, concurrency (APP-004) | Phase 6 | Zero | 7/7 passed |
 | `tests/test_payment_razorpay.py` | New payment unit & integration test suite | Verify config, signature verification, order creation, webhook idempotency (PAY-003) | Phase 8 | Zero | 11/11 passed |
 | `tests/conftest.py` | Added Razorpay endpoints to CSRF exemptions in test harness | Ensure API endpoints can be tested cleanly without browser sessions | Test | Zero | Full test suite passed |
+| `scripts/check_data_integrity.py` | New database integrity audit scanner script | Comprehensive multi-dimensional scanner across 12 dimensions (INT-001) | Phase 9 | Zero | Execution verified |
+| `docs/DATA_INTEGRITY_REPORT.md` | New database integrity report | Full breakdown of database health and anomalies (INT-002) | Phase 9 | Zero | Document inspection |
+| `services/enrollment_service.py` | New Enrollment State Machine service | Central transition function, state validation, and application sync (ENR-001) | Phase 7 | Low | `pytest tests/test_enrollment_state_machine.py` (7/7 passed) |
+| `tests/test_enrollment_state_machine.py` | New enrollment unit & integration test suite | Verify enrollment transitions, invalid jumps, unauthorized roles, concurrency (ENR-004) | Phase 7 | Zero | 7/7 passed |
+
 

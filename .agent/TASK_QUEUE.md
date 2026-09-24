@@ -40,10 +40,19 @@
 - [x] PAY-003 Razorpay signature verification & webhook idempotency handler (`/api/payment/razorpay/verify-payment`, `/api/payment/razorpay/webhook`, `payment_events`)
 - [x] PAY-004 Dual payment UI (Razorpay button with dynamic QR fallback in `static/js/payment_gateway.js`)
 
-## P1 — Session 3: Database Integrity Engine & Enrollment State Machine (NEXT)
+## P1 — Session 3: Database Integrity Engine & Enrollment State Machine (COMPLETE)
 
-- [ ] INT-001 Database integrity detector script (`scripts/check_data_integrity.py`)
-- [ ] INT-002 Automatic integrity report generation (`docs/DATA_INTEGRITY_REPORT.md`)
-- [ ] ENR-001 Enrollment lifecycle transition service (`services/enrollment_service.py`)
-- [ ] ENR-002 Enrollment state machine automated test suite (`tests/test_enrollment_state_machine.py`)
+- [x] INT-001 Database integrity detector script (`scripts/check_data_integrity.py`)
+- [x] INT-002 Automatic integrity report generation (`docs/DATA_INTEGRITY_REPORT.md`)
+- [x] ENR-001 Enrollment lifecycle transition service (`services/enrollment_service.py`)
+- [x] ENR-002 Audit history table `enrollment_status_history` in `init_db()`
+- [x] ENR-003 Stale request & optimistic concurrency protection (`expected_status`)
+- [x] ENR-004 Enrollment state machine automated test suite (`tests/test_enrollment_state_machine.py`)
+
+## P1 — Session 4: Authentication Regression & IDOR Authorization (NEXT)
+
+- [ ] AUTH-001 End-to-end multi-role authentication regression suite (`tests/test_auth_regression.py`)
+- [ ] AUTH-002 Password reset & session invalidation regression coverage
+- [ ] IDOR-001 Horizontal authorization enforcement audit across all user routes
+- [ ] IDOR-002 IDOR test suite covering intern profiles, documents, tasks, and payments (`tests/test_idor_matrix.py`)
 

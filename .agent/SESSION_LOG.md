@@ -99,4 +99,30 @@
 ### Next Steps / Session 3 Transition
 - Session 3: Phase 9 (Database Integrity Engine: `scripts/check_data_integrity.py`) and Phase 7 (Enrollment State Machine).
 
+## Session: 2026-09-25 (Session 3: Database Integrity Engine & Enrollment State Machine)
+
+### Started
+- Time: 01:30
+- Trigger: User approved proceeding into Session 3.
+- Focus: Phase 9 (Database Integrity Engine: INT-001 - INT-002) and Phase 7 (Enrollment State Machine: ENR-001 - ENR-004).
+
+### Completed Work
+1. **Database Integrity Engine (Phase 9)**:
+   - Built `scripts/check_data_integrity.py` scanning SQLite page/B-tree corruption, foreign key integrity, orphan accounts/applications/enrollments/payments, duplicate active applications, duplicate enrollments, impossible lifecycle states, and payment proof gaps.
+   - Executed against database and generated `docs/DATA_INTEGRITY_REPORT.md`: verified **0 P0 critical corruption, 0 impossible states, and 100% SQLite page integrity**.
+2. **Enrollment State Machine (Phase 7)**:
+   - Separated Application lifecycle from Enrollment lifecycle.
+   - Built `services/enrollment_service.py` featuring `transition_enrollment()` with permissions (`admin`, `system`, `intern`), optimistic locking, and automatic application synchronization (`STATUS_ACCEPTED` / `STATUS_ENROLLMENT_PENDING`).
+   - Added `enrollment_status_history` audit table and index in `init_db()`.
+   - Updated `admin_update_enrollment_status()` in `app.py` to route through the central enrollment state machine.
+   - Added `expected_status` stale request / race condition detection to both state machines.
+   - Authored test suite `tests/test_enrollment_state_machine.py` (7/7 tests passed).
+3. **Full Regression Test Pass**:
+   - Executed full test suite: **57 passed in 47.76s (100% pass rate)**.
+   - Verified zero credentials/secrets or databases in git (`python scripts/verify_env_safety.py` clean).
+
+### Next Steps / Session 4 Transition
+- Session 4: Phase 10 (Authentication Regression Suite) & Phase 11 (Authorization / IDOR Matrix).
+
+
 

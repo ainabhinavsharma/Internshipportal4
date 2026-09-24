@@ -141,7 +141,8 @@ def transition_application(
     reason: Optional[str] = None,
     request_id: Optional[str] = None,
     metadata: Optional[Union[dict, str]] = None,
-    actor_email: Optional[str] = None
+    actor_email: Optional[str] = None,
+    expected_status: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Central transition function for applications.
@@ -149,8 +150,9 @@ def transition_application(
       1. Application exists
       2. Valid target state
       3. Valid transition path from current state
-      4. Actor authorization & ownership
-      5. Optimistic concurrency (rowcount check)
+      4. Stale request / concurrency check (expected_status)
+      5. Actor authorization & ownership
+      6. Optimistic concurrency (rowcount check)
     Records audit entry in application_status_history.
     
     Returns:
@@ -176,6 +178,12 @@ def transition_application(
         raise ApplicationNotFoundError(f"Application with ID {application_id} not found.")
 
     current_status = row["status"]
+
+    # Concurrency / stale UI check
+    if expected_status and current_status != expected_status:
+        raise ConcurrentModificationError(
+            f"Application {application_id} status changed concurrently from '{expected_status}' to '{current_status}'."
+        )
 
     # Actor authorization & ownership checks
     actor_role_lower = (actor_role or "").lower()

@@ -27,4 +27,10 @@
 | `PAY-002` | 2026-09-25 | Order creation endpoints with canonical server-side pricing | Flask API tests | `app.py` | None | Client cannot dictate amount | 100% verified |
 | `PAY-003` | 2026-09-25 | Cryptographic HMAC signature verification & idempotent webhooks | Webhook & sig tests | `app.py`, `services/razorpay_client.py` | Adds `payment_events` table | Replay & spoofing resistant | Verified with valid/invalid sigs |
 | `PAY-004` | 2026-09-25 | Client-side Razorpay modal with automatic fallback to QR | JS & endpoint tests | `static/js/payment_gateway.js`, `app.py` | Adds columns to `enrollments` | Graceful zero-downtime fallback | Verified config endpoint |
+| `INT-001` | 2026-09-25 | Database Integrity Engine scanner script | Scanner execution | `scripts/check_data_integrity.py` | None | Automated multi-dimensional scan | Scans 12 dimensions |
+| `INT-002` | 2026-09-25 | Database integrity report generated | Integrity audit | `docs/DATA_INTEGRITY_REPORT.md` | None | Full audit of anomalies | 0 P0 critical corruption |
+| `ENR-001` | 2026-09-25 | Central enrollment state machine service | Unit test suite | `services/enrollment_service.py` | None | Separates enrollment lifecycle | 7/7 tests passed |
+| `ENR-002` | 2026-09-25 | Audit history table `enrollment_status_history` in `init_db()` | Pytest & DB checks | `app.py` | Adds audit table | Complete traceability | Verified schema |
+| `ENR-003` | 2026-09-25 | Refactored `admin_update_enrollment_status` to use state machine | App routes & pytest | `app.py` | None | Concurrency & permission safe | 57/57 tests passed |
+
 

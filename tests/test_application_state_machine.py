@@ -149,10 +149,9 @@ class TestApplicationStateMachine:
         db_conn.execute("UPDATE applications SET status='On Hold' WHERE id=?", (app_id,))
         db_conn.commit()
 
-        # Attempt transition assuming status was still 'Under Review'
-        # Since DB is now 'On Hold', transition from Under Review to Selected fails condition
-        with pytest.raises((ConcurrentModificationError, InvalidTransitionError)):
-            transition_application(db_conn, app_id, STATUS_ENROLLED, actor="admin")
+        # Stale UI attempt with expected_status='Under Review'
+        with pytest.raises(ConcurrentModificationError):
+            transition_application(db_conn, app_id, STATUS_SELECTED, actor="admin", expected_status=STATUS_UNDER_REVIEW)
 
     def test_idempotent_duplicate_request(self, db_conn):
         """Re-transitioning to the current status is an idempotent no-op."""
