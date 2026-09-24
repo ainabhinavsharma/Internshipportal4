@@ -280,5 +280,42 @@
 ### Next Steps / Session 8 Transition
 - Session 8: Phase 15 (File Security & Upload Sandbox Audit: CVs, payment receipts, avatars, capstones, MIME & magic bytes verification, anti-traversal).
 
+---
+
+## Session 8: File Security & Upload Sandbox Audit
+- Date: 2026-09-25
+- Time: 03:00
+- Trigger: User approved proceeding into Session 8.
+- Focus: Phase 15 (File Security & Upload Sandbox Audit).
+
+### Completed Work
+1. **Centralized File Security Service (`services/file_security_service.py`)**:
+   - `ALLOWED_EXTENSIONS`: Whitelisted only `.png`, `.jpg`, `.jpeg`, and `.pdf` files.
+   - `MAX_FILE_SIZE_BYTES`: Enforced 6MB upload limit.
+   - `sniff_magic_type()`: Validates true file header signatures (PNG `\x89PNG\r\n\x1a\n`, JPEG `\xff\xd8\xff`, PDF `%PDF`).
+   - Active rejection of malicious polyglots, embedded `<script>` tags, PHP tags (`<?php`, `<?=`), and shell execution patterns.
+   - `generate_secure_storage_name()`: Generates collision-resistant UUID-based filenames to prevent predictable URL attacks.
+   - `validate_filename_safety()` & `validate_path_within_bounds()`: Complete anti-path-traversal defense rejecting `..`, null bytes (`%00`), and path separators (`/`, `\`).
+   - `authorize_file_download()`: Object-level authorization (IDOR defense) checking file ownership across `task_submissions`, `enrollments`, `course_payments`, and `post_hire_deposits`, allowing staff and admin audits while denying unauthorized third parties.
+2. **Endpoint Hardening (`app.py`)**:
+   - Added secure `@app.route("/uploads/<path:filename>")` enforcing authentication (401), anti-path-traversal (400), object-level authorization (403), file existence (404), and `X-Content-Type-Options: nosniff`.
+   - Hardened `/admin/screenshot/<filename>` with path-traversal validation and staff review access.
+   - Updated `sniff_upload_type()` to use `sniff_magic_type()`.
+3. **Phase 15 Automated Test Suite (`tests/test_upload_sandbox.py`)**:
+   - Authored 19 comprehensive tests across 4 key test classes:
+     - `TestFileExtensionAndMagicByteValidation`: Allowed extension whitelist, valid magic byte sniffing, rejection of corrupt/spoofed files, rejection of embedded scripts/polyglots, secure UUID filename generation.
+     - `TestPathTraversalDefenses`: Rejection of traversal basenames, path boundary enforcement within `UPLOAD_FOLDER`, anti-traversal on `/uploads/<path:filename>` and `/admin/screenshot/<filename>`.
+     - `TestObjectLevelAuthorizationAndIDOR`: Unauthenticated 401 blocks, intern accessing own task submission, intern blocked from other intern's submission (403), intern downloading own enrollment payment receipt, staff/admin download access, nonexistent file 404.
+     - `TestCsvUploadSecurity`: Unauthorized user blocked from CSV import, non-csv extension rejection, and CSV formula injection sanitization (CWE-1236).
+   - **Result: 19/19 passed (100%)**.
+4. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **130 passed, 6 deselected in 215.15s (100% pass rate)**.
+   - Zero tracked secrets/databases confirmed via `python scripts/verify_env_safety.py`.
+   - Zero critical database integrity violations confirmed via `python scripts/check_data_integrity.py`.
+
+### Next Steps / Session 9 Transition
+- Session 9: Phase 16 (Privacy & Field Classification: PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE).
+
+
 
 

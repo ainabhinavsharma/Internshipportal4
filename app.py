@@ -609,20 +609,11 @@ def generate_password(n=10): return "".join(secrets.choice(string.ascii_letters 
 def allowed_file(fn): return "." in fn and fn.rsplit(".", 1)[1].lower() in ALLOWED_EXT
 
 def sniff_upload_type(file_storage):
-    """Phase 8.5: verify real file type by magic bytes (not extension).
+    """Phase 15: verify real file type by magic bytes (not extension).
+    Actively rejects polyglot/malicious payload signatures (PHP, HTML/JS, Shell).
     Returns 'png' | 'jpg' | 'pdf' or None. Rewinds the stream afterwards."""
-    try:
-        head = file_storage.stream.read(8)
-        file_storage.stream.seek(0)
-    except Exception:
-        return None
-    if head.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "png"
-    if head.startswith(b"\xff\xd8\xff"):
-        return "jpg"
-    if head.startswith(b"%PDF"):
-        return "pdf"
-    return None
+    from services.file_security_service import sniff_magic_type
+    return sniff_magic_type(file_storage)
 def is_valid_email(e): return bool(re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", e or ""))
 def is_valid_email_domain(email):
     if not is_valid_email(email): return False
@@ -14872,10 +14863,103 @@ def admin_csv_interviews():
 @app.route("/admin/screenshot/<filename>")
 def admin_screenshot(filename):
     try:
-        if not is_admin_request(): return "Unauthorized", 401
-        return send_from_directory(app.config["UPLOAD_FOLDER"], secure_filename(filename))
+        staff = current_staff()
+        if not (is_admin_request() or staff):
+            return "Unauthorized", 401
+        from services.file_security_service import (
+            validate_filename_safety,
+            validate_path_within_bounds,
+            PathTraversalError
+        )
+        try:
+            clean_filename = validate_filename_safety(filename)
+            resolved_path = validate_path_within_bounds(app.config["UPLOAD_FOLDER"], clean_filename)
+        except PathTraversalError as pte:
+            log_error("admin-screenshot-traversal", pte)
+            return "Bad Request", 400
+        if not os.path.isfile(resolved_path):
+            return "Not found", 404
+        resp = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], clean_filename))
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        resp.headers["Cache-Control"] = "private, no-cache, no-store, must-revalidate"
+        return resp
     except Exception as e:
-        log_error("screenshot", e); return "Not found", 404
+        log_error("screenshot", e)
+        return "Not found", 404
+
+
+@app.route("/uploads/<path:filename>")
+def serve_uploaded_file(filename):
+    """
+    Phase 15: File Security & Sandbox Access Controller.
+    Private uploaded files (payment screenshots, task submission files, deposit proofs)
+    must never be accessible via predictable public URLs.
+    Enforces:
+      1. Authentication: 401 if unauthenticated
+      2. Anti-Path Traversal: 400 if traversal detected or path escapes UPLOAD_FOLDER
+      3. Object-level Authorization (IDOR Defense):
+         - Admin / Staff: Allowed for auditing & review
+         - Intern: Allowed ONLY if file belongs to them (verified via task_submissions,
+           enrollments, course_payments, post_hire_deposits)
+         - Company / Mentor: Allowed only if linked to company's job post / mentor domain
+         - Other users: 403 Forbidden
+      4. File existence: 404 if file does not exist on disk
+      5. Security Headers:
+         - X-Content-Type-Options: nosniff
+         - Cache-Control: private, no-cache, no-store, must-revalidate
+    """
+    try:
+        user = get_current_user()
+        staff = current_staff()
+        admin = require_admin()
+        company = current_company()
+        mentor = current_mentor()
+
+        user_context = None
+        if admin:
+            user_context = {"role": "admin", "is_admin": True}
+        elif staff:
+            user_context = {"role": "staff", "is_staff": True, "id": staff["id"]}
+        elif user and user.get("role") == "intern":
+            user_context = {"role": "intern", "id": user.get("user_id"), "email": user.get("email")}
+        elif company:
+            user_context = {"role": "company", "id": company["id"]}
+        elif mentor:
+            user_context = {"role": "mentor", "id": mentor["id"]}
+
+        if not user_context:
+            return jsonify({"status": "error", "message": "Authentication required."}), 401
+
+        from services.file_security_service import (
+            validate_filename_safety,
+            validate_path_within_bounds,
+            authorize_file_download,
+            PathTraversalError
+        )
+        try:
+            clean_filename = validate_filename_safety(filename)
+            resolved_path = validate_path_within_bounds(app.config["UPLOAD_FOLDER"], clean_filename)
+        except PathTraversalError as pte:
+            log_error("uploads-traversal-blocked", pte)
+            return jsonify({"status": "error", "message": "Invalid file path."}), 400
+
+        with get_db() as conn:
+            authorized, reason = authorize_file_download(conn, user_context, clean_filename)
+
+        if not authorized:
+            return jsonify({"status": "error", "message": "Access denied."}), 403
+
+        if not os.path.isfile(resolved_path):
+            return jsonify({"status": "error", "message": "File not found."}), 404
+
+        resp = make_response(send_from_directory(app.config["UPLOAD_FOLDER"], clean_filename))
+        resp.headers["X-Content-Type-Options"] = "nosniff"
+        resp.headers["Cache-Control"] = "private, no-cache, no-store, must-revalidate"
+        return resp
+    except Exception as e:
+        log_error("uploads-serve", e)
+        return jsonify({"status": "error", "message": "Error loading file."}), 500
+
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

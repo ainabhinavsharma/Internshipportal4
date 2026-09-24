@@ -77,8 +77,14 @@
 - [x] OUT-002 Outbox worker daemon with exponential backoff & dead-letter queue (`tests/test_outbox_resilience.py`)
 - [x] OUT-003 Failure isolation: critical user transactions succeed even when SMTP fails
 
-## P1 — Session 8: File Security & Upload Sandbox Audit (NEXT)
+## P1 — Session 8: File Security & Upload Sandbox Audit (COMPLETE)
 
-- [ ] FILE-001 Upload sandbox validation audit (CVs, payment screenshots, avatar photos, capstone files)
-- [ ] FILE-002 MIME type, magic bytes, file size limits, and sanitization enforcement
-- [ ] FILE-003 Path traversal prevention & private file download authorization verification
+- [x] FILE-001 Upload sandbox validation audit (CVs, payment screenshots, avatar photos, capstone files) (`services/file_security_service.py`, `app.py`)
+- [x] FILE-002 MIME type, magic bytes, file size limits, polyglot/script rejection, and CSV formula injection sanitization (`tests/test_upload_sandbox.py`)
+- [x] FILE-003 Path traversal prevention & private file download object-level authorization (IDOR defense on `/uploads/<path:filename>`)
+
+## P1 — Session 9: Privacy & Field Classification (NEXT)
+
+- [ ] PRIV-001 Field classification engine (PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE)
+- [ ] PRIV-002 API response serializer hardening (prevent raw user/database model leaks to public endpoints)
+- [ ] PRIV-003 Multi-role privacy access test suite (anonymous, other intern, mentor, company, admin)

@@ -48,5 +48,8 @@
 | `OUT-001` | 2026-09-25 | Transactional event outbox engine & atomic event enqueuing | Pytest outbox decoupling tests | `services/outbox_service.py`, `app.py`, `services/application_service.py`, `services/enrollment_service.py` | Adds `event_outbox` table | Decouples business commits from network I/O | Passed 100% |
 | `OUT-002` | 2026-09-25 | Outbox batch processor daemon with exponential backoff & dead-letter replay | Worker unit tests | `services/outbox_service.py`, `tests/test_outbox_resilience.py` | None | Guarantees at-least-once asynchronous event delivery | Passed 100% |
 | `OUT-003` | 2026-09-25 | Failure isolation: application & enrollment transactions succeed even on total SMTP failure | Integration failure injection tests | `tests/test_outbox_resilience.py`, `app.py` | None | Eliminates 500 error cascades when external SMTP is down | Passed 100% |
+| `FILE-001` | 2026-09-25 | Centralized file security service & upload sandbox audit | Security service unit tests | `services/file_security_service.py`, `app.py` | Whitelist PNG, JPG, PDF | Strict extension & magic byte validation | Passed 100% |
+| `FILE-002` | 2026-09-25 | Magic byte sniffing, active script/polyglot rejection, and CSV formula sanitization | Pytest upload sandbox tests | `services/file_security_service.py`, `tests/test_upload_sandbox.py` | None | Rejects embedded PHP, HTML/JS, Shell payloads | 19/19 tests passed |
+| `FILE-003` | 2026-09-25 | Anti-path-traversal and object-level download authorization (IDOR defense on `/uploads/<path:filename>`) | Pytest download authorization tests | `app.py`, `services/file_security_service.py` | None | Private files never accessible via unauthenticated/predictable URLs | Passed 100% |
 
 

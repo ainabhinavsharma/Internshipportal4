@@ -1,33 +1,34 @@
 # Current Phase
 
-Phase: Session 7 (Phase 14 Email / Event Outbox & Failure Resilience)
+Phase: Session 8 (Phase 15 File Security & Upload Sandbox Audit)
 Master Plan: INTERNSHIPPORTAL4_LOCAL_AI_AGENT_MASTER_PLAN.md
 Target Remote: https://github.com/ainabhinavsharma/Internshipportal4.git
-Status: COMPLETE (Phase 14 Gates Passed)
+Status: COMPLETE (Phase 15 Gates Passed)
 
 Current Task:
-Commit and push Session 7 deliverables to Internshipportal4, prepare Session 8 (Phase 15 File Security & Upload Sandbox)
+Commit and push Session 8 deliverables to Internshipportal4, proceed to Session 9 (Phase 16 Privacy & Field Classification)
 
-Completed in Session 7:
-- OUT-001: Transactional event outbox engine implemented (`services/outbox_service.py`), supporting all 11 Master Plan event types and all 5 lifecycle states (PENDING, SENT, RETRYING, FAILED, DEAD_LETTER). Added `event_outbox` DDL to `init_db()` in `app.py`. Wired atomic event enqueuing into `/apply`, `/signup/stage3`, `/enroll`, and task review.
-- OUT-002: Batch processor daemon implemented with exponential backoff (`process_outbox_batch`), dead-letter queueing upon max retry exhaustion, and manual/automated dead-letter replay (`replay_dead_letters`).
-- OUT-003: Failure isolation verified: user business operations (applicant registration, state machine transitions, enrollment approvals) succeed completely even when downstream SMTP servers or email services are completely unreachable or crashing.
-- Full regression test suite passing: **111/111 tests passed (100%)**
-- Environment & Database Integrity safety verified: 0 tracked secrets, 0 databases, 0 P0 data corruption
+Completed in Session 8:
+- FILE-001: Centralized file security service (`services/file_security_service.py`) providing extension whitelisting, UUID storage name generation, magic byte sniffing, path traversal defenses, and object-level download authorization.
+- FILE-002: Upload sandbox defenses implemented: sniffing true magic bytes (PNG, JPG, PDF) with active rejection of embedded script tags, PHP code, shell constructs, and polyglot files. Formula injection sanitization for CSV imports (CWE-1236).
+- FILE-003: Hardened `/uploads/<path:filename>` and `/admin/screenshot/<filename>` against path traversal, unauthenticated access (401), and horizontal IDOR privilege escalation (403). Ensured private documents, task submissions, and payment receipts are accessible only by legitimate owners or authorized staff/admins.
+- Phase 15 automated test suite passing: **19/19 tests passed (100%)**
+- Full regression test suite passing: **130/130 tests passed (100%)**
+- Environment & Database Integrity safety verified: 0 tracked secrets, 0 databases, 0 critical issues
 
 In Progress:
-- Commit and push Session 7 deliverables to `origin/main` (`Internshipportal4`)
+- Commit and push Session 8 deliverables to `origin/main` (`Internshipportal4`)
 
 Blocked:
 - None
 
 Next Phase:
-- Session 8: Phase 15 (File Security & Upload Sandbox audit: CVs, receipts, profile photos, capstone files, MIME/magic byte enforcement, anti-path traversal)
+- Session 9: Phase 16 (Privacy & Field Classification: PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE)
 
 Last Verified:
-2026-09-25 02:42
+2026-09-25 03:01
 
 Last Test Result:
-- `pytest -v -k "not chromium"` -> 111 passed, 6 deselected in 173.29s (100% pass)
+- `pytest -v -k "not chromium"` -> 130 passed, 6 deselected in 215.15s (100% pass)
 - `python scripts/verify_env_safety.py` -> 0 tracked secrets, 0 databases
 - `python scripts/check_data_integrity.py` -> 0 critical issues
