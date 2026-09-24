@@ -56,7 +56,6 @@ htmlcov/
 *.log
 *.pid
 scratch/
-.agent/
 *.csv
 
 # Temporary, Migration, and Seed Scripts

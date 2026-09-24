@@ -1775,6 +1775,7 @@ def init_db():
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
                 post_id    INTEGER NOT NULL,
                 intern_id  INTEGER NOT NULL,
+                email      TEXT,
                 comment    TEXT NOT NULL,
                 cv_id      INTEGER,
                 status     TEXT DEFAULT 'Applied',
@@ -2277,6 +2278,7 @@ def init_db():
         ensure_column(conn, "user_sessions", "next_url", "TEXT")
         # Track 2 Â§B (UAT #4): cert-gated selection bookkeeping on a job/internship application.
         for col, defn in [
+            ("email", "TEXT"),
             ("needed_certs_json", "TEXT"),   # [{course_id,title}] the company asks the intern to complete
             ("decision_note", "TEXT"),       # optional company note shown to the applicant
             ("decided_at", "TEXT"),
