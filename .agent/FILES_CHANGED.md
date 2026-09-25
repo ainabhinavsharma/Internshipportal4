@@ -60,6 +60,12 @@
 | `services/privacy_service.py` | New Privacy and Field Classification service | Field classification registry (PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE), PII masking (email/phone), public serializers (certificates/posts/companies), and role filtering (PRIV-001) | Phase 16 | Low | `pytest tests/test_privacy_field_classification.py` (13/13 passed) |
 | `app.py` | Enhanced `row_to_dict` with automatic sensitive key stripping; hardened `/portal/certificate/<cert_id>` and `/intern/me` serialization | Prevents accidental password_hash or internal note leakage across public and user endpoints (PRIV-002) | Phase 16 | Low | Full pytest suite (143/143 passed) |
 | `tests/test_privacy_field_classification.py` | New Privacy & Field Classification test suite | 13 test cases covering taxonomy, masking, serializers, and multi-role access against private endpoints (PRIV-001 - PRIV-003) | Phase 16 | Zero | 13/13 passed |
+| `services/ux_audit_service.py` | New UX Audit service | Define role home navigation mapping, dashboard branding, and structured error context answering what/why/action (UX-001) | Phase 17 | Low | `pytest tests/test_ux_dead_ends.py` (13/13 passed) |
+| `templates/error.html` | Overhauled error template | Presents 3 structured explanation sections (What happened, Why, Action) and active recovery links to Home, Portal, Jobs, and Support (UX-002) | Phase 17 | Low | Visual & test client checks |
+| `templates/post_listings.html` | Added empty-state recovery links | Ensures zero-result search or empty domain filters always present clickable paths to browse all jobs/internships or return home (UX-001) | Phase 17 | Low | Visual & test client checks |
+| `app.py` | Upgraded `_render_error()` with structured context; added `@app.errorhandler` for 400, 401, 403, 404, 410, 500; replaced raw plain-text 500s | Eliminates blank/raw error dead ends and provides structured JSON for API error responses (UX-002) | Phase 17 | Medium | Full pytest suite (156/156 passed) |
+| `tests/test_ux_dead_ends.py` | New UX Dead-End and Error Resolution test suite | 13 test cases covering 400/401/403/404/410/500 handlers, JSON schemas, unauthenticated dashboard redirects, listings empty recovery links, and certificate error guidance (UX-003) | Phase 17 | Zero | 13/13 passed |
+
 
 
 

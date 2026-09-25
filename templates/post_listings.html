@@ -176,7 +176,7 @@
         </a>
         {% endfor %}
       {% else %}
-        <div class="empty" id="t2ServerEmpty"><i class="fas fa-folder-open" style="font-size:1.6rem;display:block;margin-bottom:10px;opacity:.6;"></i>No live {{ label|lower }}{% if active_domain %} in {{ active_domain }}{% endif %}{% if active_location %} in {{ active_location }}{% endif %} right now. Check back soon{% if active_domain or active_location %}, or browse all {{ label|lower }}{% endif %}.</div>
+        <div class="empty" id="t2ServerEmpty"><i class="fas fa-folder-open" style="font-size:1.6rem;display:block;margin-bottom:10px;opacity:.6;"></i>No live {{ label|lower }}{% if active_domain %} in {{ active_domain }}{% endif %}{% if active_location %} in {{ active_location }}{% endif %} right now. Check back soon, or <a href="{{ base_path }}" style="color:var(--gold,#C89945);text-decoration:underline;font-weight:600;">browse all {{ label|lower }}</a>. You can also explore <a href="{% if post_type == 'job' %}/internships{% else %}/jobs{% endif %}" style="color:var(--gold,#C89945);text-decoration:underline;font-weight:600;">{% if post_type == 'job' %}internships{% else %}jobs{% endif %}</a> or <a href="/" style="color:var(--gold,#C89945);text-decoration:underline;font-weight:600;">return home</a>.</div>
       {% endif %}
     </div>
     {% if posts %}

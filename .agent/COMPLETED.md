@@ -54,6 +54,10 @@
 | `PRIV-001` | 2026-09-25 | Centralized privacy & field classification service | Unit tests & classification matrix | `services/privacy_service.py` | None | Classifies fields into PUBLIC, PRIVATE, ADMIN_ONLY, SENSITIVE | Passed 100% |
 | `PRIV-002` | 2026-09-25 | Response serializer hardening & global sensitive field exclusion in `row_to_dict` | Integration tests | `app.py`, `services/privacy_service.py` | None | Drops password_hash, salt, tokens from public/user endpoints | Passed 100% |
 | `PRIV-003` | 2026-09-25 | Multi-role privacy access test suite across anonymous, intern, mentor, company, admin | Pytest multi-role privacy tests | `tests/test_privacy_field_classification.py` | None | Verifies strict privacy boundaries against private endpoints | 13/13 tests passed |
+| `UX-001` | 2026-09-25 | Centralized UX audit service & empty-state recovery links | Unit tests & template checks | `services/ux_audit_service.py`, `templates/post_listings.html` | None | Eliminates user dead-ends with clickable recovery CTAs | 13/13 tests passed |
+| `UX-002` | 2026-09-25 | Comprehensive error handler audit (400, 401, 403, 404, 410, 500) answering what/why/action | Flask errorhandler & test client | `app.py`, `templates/error.html` | None | Replaces raw 500 plain text with structured error pages & JSON schemas | Passed 100% |
+| `UX-003` | 2026-09-25 | Dead-end detection test suite covering status codes, JSON schemas, redirects, and listings | Pytest UX suite (13 tests) | `tests/test_ux_dead_ends.py` | None | Verifies error recovery paths across all failure scenarios | 13/13 tests passed |
+
 
 
 

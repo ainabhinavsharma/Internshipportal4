@@ -350,6 +350,43 @@
 ### Next Steps / Session 10 Transition
 - Session 10: Phase 17 (UX Dead-End & Error Resolution Audit).
 
+---
+
+## Session 10: UX Dead-End & Error Resolution Audit
+- Date: 2026-09-25
+- Time: 11:10
+- Trigger: User approved proceeding into Session 10.
+- Focus: Phase 17 (UX Dead-End & Error Resolution Audit: UX-001 - UX-003).
+
+### Completed Work
+1. **Centralized UX Audit Service (`services/ux_audit_service.py`)**:
+   - Implemented `ROLE_LANDING_ROUTES` and `ROLE_DASHBOARD_NAMES` for consistent navigation across intern, company, mentor, staff, and admin.
+   - Built `get_error_context(status_code)` mapping standard HTTP error codes (400, 401, 403, 404, 410, 500) into 3 structured explanation components:
+     - `what_happened`: Clear, non-technical explanation of the current state.
+     - `why`: Root cause analysis (e.g., session expired, insufficient permissions, resource removed).
+     - `action`: Specific next step recommendations for the user.
+2. **Template & Error Flow Hardening (`templates/error.html`, `templates/post_listings.html`, `app.py`)**:
+   - Overhauled `templates/error.html` with modern, friendly styling rendering the three context sections (What happened, Why, What you can do) and quick recovery action links to Home, My Portal, Browse Jobs, and Support.
+   - Hardened `templates/post_listings.html` against empty state dead ends: when 0 jobs or internships match active filters or when no posts exist, users are always presented with clickable links to clear filters, view all listings, or return home.
+   - Upgraded `_render_error()` in `app.py` to inject structured context into HTML templates and deliver structured JSON error schemas (`status`, `code`, `heading`, `message`, `what_happened`, `why`, `action`) for API/XHR requests.
+   - Added dedicated Flask error handlers `@app.errorhandler` for 400, 401, 403, 404, 410, and 500.
+   - Replaced raw plain text `"Server error", 500` returns on HTML routes (`/`, `/program`, `/portal`, `/interview`, `/mentor`, `/admin-login`, `/admin/ledger`) with proper structured error rendering.
+3. **Phase 17 Automated Test Suite (`tests/test_ux_dead_ends.py`)**:
+   - Authored 13 automated tests across 4 test classes:
+     - `TestErrorPagesAndHandlers`: Verifies 404, 401, 403, 410, 500 handlers render structured what/why/action sections and active navigation links.
+     - `TestApiErrorResponses`: Verifies JSON API clients receive standardized JSON error payloads matching the error schema.
+     - `TestUnauthenticatedDashboardRedirects`: Verifies unauthenticated attempts to access `/portal`, `/admin`, `/mentor`, and `/company/dashboard` safely redirect to respective login gateways rather than raising 500 errors.
+     - `TestEmptyStateAndVerificationRecovery`: Verifies empty job board searches and non-existent certificate IDs provide clear recovery pathways without dead ends.
+   - **Result: 13/13 passed (100%)**.
+4. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **156 passed, 6 deselected in 282.94s (100% pass rate)**.
+   - Zero tracked secrets/databases confirmed via `python scripts/verify_env_safety.py`.
+   - Zero critical database integrity violations confirmed via `python scripts/check_data_integrity.py`.
+
+### Next Steps / Session 11 Transition
+- Session 11: Phase 18 (Mobile & Accessibility Responsive Audit: MOB-001 - MOB-003).
+
+
 
 
 

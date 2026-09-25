@@ -4304,17 +4304,17 @@ def index():
         )
     except Exception as e:
         log_error("/index", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Homepage", "Unable to load homepage content. Please try again.")
 
 
 @app.route("/program")
 def program_page():
-    """Phase 12.3 â€” public, indexable paid-program landing page (terms shown before any CTA)."""
+    """Phase 12.3 — public, indexable paid-program landing page (terms shown before any CTA)."""
     try:
         return render_template("program.html", paid_amount=PAID_PROGRAM_AMOUNT, upi_id=UPI_ID)
     except Exception as e:
         log_error("/program", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Program Details", "Unable to load program page. Please try again.")
 
 
 @app.route("/robots.txt")
@@ -4511,7 +4511,7 @@ def reset_password_page():
         return render_template("reset_password.html")
     except Exception as e:
         log_error("/reset", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Password Reset", "Unable to load the password reset page. Please try again.")
 
 
 @app.route("/portal")
@@ -4525,7 +4525,7 @@ def portal_page():
         return render_template("portal.html")
     except Exception as e:
         log_error("/portal", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Portal", "Unable to load your portal dashboard. Please refresh or try again.")
 
 
 @app.route("/enrollment-count")
@@ -4553,7 +4553,7 @@ def dashboard_page():
 
 @app.route("/interview")
 def interview_page():
-    """Phase 11.6 â€” candidate-initiated AI interview page. Intern session required."""
+    """Phase 11.6 — candidate-initiated AI interview page. Intern session required."""
     try:
         user = require_role("intern")
         if not user:
@@ -4561,7 +4561,7 @@ def interview_page():
         return render_template("interview.html")
     except Exception as e:
         log_error("/interview", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Interview", "Unable to load the interview interface. Please try again.")
 
 
 @app.route("/mentor")
@@ -4570,10 +4570,10 @@ def mentor_page():
         return render_template("mentor.html")
     except Exception as e:
         log_error("/mentor", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Mentor Dashboard", "Unable to load the mentor interface. Please try again.")
 
 
-# â”€â”€ Admin Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Admin Login ──────────────────────────────────────────
 
 @app.route("/admin-login")
 def admin_login_page():
@@ -4583,7 +4583,7 @@ def admin_login_page():
         return render_template("admin_login.html")
     except Exception as e:
         log_error("/admin-login", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Admin Login", "Unable to load the admin login page. Please try again.")
 
 
 @app.route("/admin/login", methods=["GET", "POST"])
@@ -7385,7 +7385,7 @@ def admin_ledger():
         )
     except Exception as e:
         log_error("/admin/ledger", e)
-        return "Server error", 500
+        return _render_error(500, "Error Loading Ledger", "Unable to load ledger and certificate events. Please try again.")
 
 
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -15309,53 +15309,101 @@ def request_entity_too_large(e):
     return jsonify({"status": "error", "message": "File too large. Maximum size is 6 MB."}), 413
 
 
-def _render_error(code, heading, message, tone="amber", icon="fa-circle-exclamation"):
-    """Styled error page, or JSON for API callers (spec Â§9: no dead ends, no
-    raw tracebacks). Falls back to plain text if even the template fails â€”
-    an error handler must never raise."""
+def _render_error(code, heading, message, tone="amber", icon="fa-circle-exclamation", what_happened=None, why=None, action=None):
+    """Phase 17: Styled error page, or JSON for API callers (spec §9: no dead ends, no
+    raw tracebacks). Explains what happened, why, and what the user can do next."""
     wants_json = (request.is_json
-                  or request.path.startswith(("/intern/", "/admin/", "/api/", "/r/"))
+                  or request.path.startswith(("/intern/", "/admin/", "/api/", "/r/", "/company/", "/mentor/"))
                   or request.headers.get("X-Requested-With") == "XMLHttpRequest"
                   or "application/json" in (request.headers.get("Accept") or ""))
     if wants_json:
-        return jsonify({"status": "error", "message": message}), code
+        return jsonify({
+            "status": "error",
+            "code": code,
+            "heading": heading,
+            "message": message,
+            "what_happened": what_happened or heading,
+            "why": why or message,
+            "action": action or "Please return to the homepage or sign in again."
+        }), code
     try:
         return render_template("error.html", code=code, heading=heading,
-                               message=message, tone=tone, icon=icon), code
+                               message=message, tone=tone, icon=icon,
+                               what_happened=what_happened or heading,
+                               why=why or message,
+                               action=action or "Check the link, return to the homepage, or sign in to your portal."), code
     except Exception:
-        return f"{code} â€” {heading}", code
+        return f"{code} — {heading}. {message}", code
 
 
-@app.errorhandler(404)
-def not_found(e):
+@app.errorhandler(400)
+def bad_request(e):
     return _render_error(
-        404, "Page not found",
-        "That link doesn't exist, or it may have moved. Nothing has gone wrong with your account.",
-        tone="amber", icon="fa-compass")
+        400, "Bad Request",
+        "The server could not understand your request. Please check the inputs and try again.",
+        tone="amber", icon="fa-circle-exclamation",
+        what_happened="Invalid or malformed request",
+        why="The request parameters or form fields were incomplete or invalid.",
+        action="Return to the previous page and verify all required information.")
+
+
+@app.errorhandler(401)
+def unauthorized(e):
+    return _render_error(
+        401, "Authentication Required",
+        "You must be signed in to view this page or your session has expired. Please log in to continue.",
+        tone="amber", icon="fa-user-lock",
+        what_happened="Authentication required",
+        why="You attempted to access a protected area without an active session, or your session timed out.",
+        action="Please sign in with your account credentials.")
 
 
 @app.errorhandler(403)
 def forbidden(e):
     return _render_error(
-        403, "Not allowed",
-        "You don't have access to that, or your session expired. Try signing in again.",
-        tone="amber", icon="fa-lock")
+        403, "Access Forbidden",
+        "You don't have access to that resource, or your session expired. Try signing in again.",
+        tone="amber", icon="fa-lock",
+        what_happened="Access denied",
+        why="Your current account role does not have the necessary permissions for this page.",
+        action="Sign in with an authorized account or contact support if you believe this is an error.")
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return _render_error(
+        404, "Page Not Found",
+        "That link doesn't exist, or it may have moved. Nothing has gone wrong with your account.",
+        tone="amber", icon="fa-compass",
+        what_happened="Requested page does not exist",
+        why="The URL is mistyped, the link has expired, or the resource was deleted.",
+        action="Check the URL for typos, or return to the homepage or your portal dashboard.")
+
+
+@app.errorhandler(410)
+def gone(e):
+    return _render_error(
+        410, "Listing No Longer Available",
+        "This job or internship listing has expired or was removed by the company.",
+        tone="amber", icon="fa-calendar-xmark",
+        what_happened="This listing is closed",
+        why="The application deadline has passed or the position was filled.",
+        action="Browse currently open internships and jobs to discover new opportunities.")
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    # Details go to the server log ONLY - never to the user (spec A 5.8).
     try:
         log_error("500", e)
     except Exception:
         pass
-    wants_json = request.is_json or request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.path.startswith(("/intern/", "/admin/", "/company/", "/mentor/"))
-    if wants_json:
-        return jsonify({"status": "error", "message": "Internal Server Error"}), 500
     return _render_error(
-        500, "Something went wrong on our end",
-        "We've logged the problem and will look into it. Please try again in a moment.",
-        tone="red", icon="fa-triangle-exclamation")
+        500, "Something Went Wrong",
+        "We encountered an unexpected error processing your request. We've logged the problem and will look into it.",
+        tone="red", icon="fa-triangle-exclamation",
+        what_happened="Unexpected server error",
+        why="An internal error occurred while processing your request.",
+        action="Please refresh the page in a moment. If the issue persists, contact careers@dbert.info.")
 
 
 @app.after_request

@@ -89,9 +89,15 @@
 - [x] PRIV-002 API response serializer hardening & default sensitive field stripping in `row_to_dict` (prevent raw user/database model leaks to public endpoints) (`app.py`, `services/privacy_service.py`)
 - [x] PRIV-003 Multi-role privacy access test suite (anonymous, other intern, mentor, company, admin) (`tests/test_privacy_field_classification.py`)
 
-## P1 — Session 10: UX Dead-End & Error Resolution Audit (NEXT)
+## P1 — Session 10: UX Dead-End & Error Resolution Audit (COMPLETE)
 
-- [ ] UX-001 Navigation and empty state consistency audit (clear next steps on all 5 role dashboards)
-- [ ] UX-002 Comprehensive error handler audit (404, 401, 403, 500 friendly explanation templates)
-- [ ] UX-003 Dead-end detection test suite (verifying no loops, unhandled 500s, or dead CTA paths)
+- [x] UX-001 Navigation and empty state consistency audit with active recovery CTAs across public listings and role dashboards (`templates/post_listings.html`, `services/ux_audit_service.py`)
+- [x] UX-002 Comprehensive error handler audit (400, 401, 403, 404, 410, 500) answering what happened, why, and what the user can do (`app.py`, `templates/error.html`)
+- [x] UX-003 Dead-end detection test suite verifying error pages, recovery links, and no unhandled 500s or loops (`tests/test_ux_dead_ends.py`)
+
+## P1 — Session 11: Mobile & Accessibility Responsive Audit (NEXT)
+
+- [ ] MOB-001 Viewport matrix verification (360x800, 390x844, 412x915, 768x1024, 1366x768, 1920x1080)
+- [ ] MOB-002 Critical workflow accessibility audit (keyboard focus, contrast, form labels, ARIA landmarks across signup, login, portal, jobs, payments)
+- [ ] MOB-003 Responsive layout and touch targets automated test suite
 
