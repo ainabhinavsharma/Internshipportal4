@@ -94,6 +94,11 @@
 | `MOD-004` | 2026-09-25 | Role Portals blueprint extraction (admin, mentor, company, intern) | Portal route tests | `routes/admin.py`, `routes/mentor.py`, `routes/company.py`, `routes/intern.py` | None | Clean RBAC boundaries for telemetry, slots, candidates, certs | Passed 100% |
 | `MOD-005` | 2026-09-25 | Specialized domain services and learning blueprint extraction | Domain tests | `services/certificate_service.py`, `services/interview_service.py`, `services/notification_service.py`, `services/learning_service.py`, `services/mastery_service.py`, `routes/learning.py`, `routes/__init__.py` | None | Unified blueprint registry, serial generation, RAG facade | Passed 100% |
 | `MOD-006` | 2026-09-25 | Modularization characterization test suite & full regression pass | Pytest (18 tests) & full suite (281 tests) | `tests/test_modularization.py` | None | Guarantees zero behavioral drift across all extracted blueprints | 18/18 + 281/281 passed |
+| `DB-ABS-001` | 2026-09-25 | Generic Database Adapter Interface & Dialect Translator | Adapter tests | `services/database/adapter.py`, `services/database/__init__.py` | None | Unified SQLite & PostgreSQL dialect translation, RowWrapper, error normalization | Passed 100% |
+| `DB-ABS-002` | 2026-09-25 | Thread-Safe Connection Pooling & Nested Savepoint Transaction Manager | Pool & tx tests | `services/database/connection_pool.py` | None | Liveness checks, bounded queue, atomic transactions with savepoints | Passed 100% |
+| `DB-ABS-003` | 2026-09-25 | SQLite-to-PostgreSQL Schema Translator & Verification Engine | Schema verifier | `services/database/schema_translator.py`, `scripts/verify_postgres_compatibility.py`, `docs/POSTGRES_SCHEMA.sql` | Generated PG DDL | 65 tables, 79 indexes, 100% compatibility verified | 100% verified |
+| `DB-ABS-004` | 2026-09-25 | Database Abstraction Regression & Verification Suite | Pytest (29 tests) & full suite (310 tests) | `tests/test_database_abstraction.py` | None | Full coverage of adapters, pooling, dialect conversions, and transactions | 29/29 + 310/310 passed |
+
 
 
 

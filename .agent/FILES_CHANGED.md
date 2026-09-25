@@ -121,3 +121,11 @@
 | `routes/learning.py` | New Learning Blueprint | Modular routes for `/api/learning/v2/*` session, turn, reviews, concept tree | Phase 23 | Low | `pytest tests/test_modularization.py` |
 | `routes/__init__.py` | Central Blueprint Registration Hub | Auto-registers all 10 domain blueprints onto core Flask app | Phase 23 | Low | Full pytest suite (281/281 passed) |
 | `tests/test_modularization.py` | New Monolith Modularization test suite | 18 test cases verifying all domain services and modular blueprints | Phase 23 | Zero | 18/18 passed in 4.91s |
+| `services/database/adapter.py` | New Database Adapter Layer | Generic DatabaseAdapter, RowWrapper, SQLiteAdapter, PostgreSQLAdapter, translate_sql, normalized exceptions | Phase 24 | Low | `pytest tests/test_database_abstraction.py` |
+| `services/database/connection_pool.py` | New Connection Pool & Transaction Manager | Thread-safe SQLiteConnectionPool, checkout/checkin, liveness, atomic nested savepoint transaction manager | Phase 24 | Low | `pytest tests/test_database_abstraction.py` |
+| `services/database/schema_translator.py` | New Schema Translation Engine | Translates SQLite table/index DDL to PostgreSQL (SERIAL PK, CURRENT_TIMESTAMP, BYTEA) | Phase 25 | Low | `pytest tests/test_database_abstraction.py` |
+| `services/database/__init__.py` | Database package interface | Exports adapter, pool, transactions, schema translator, and exceptions | Phase 24 | Low | `pytest tests/test_database_abstraction.py` |
+| `scripts/verify_postgres_compatibility.py` | PostgreSQL Compatibility Verifier script | Audits SQLite schema, translates to PG, generates `docs/POSTGRES_SCHEMA.sql`, verifies 0 dialect leaks | Phase 25 | Zero | Execution verified (100% compatibility) |
+| `docs/POSTGRES_SCHEMA.sql` | Canonical PostgreSQL Staging Schema | Complete PostgreSQL DDL across all 65 tables and 79 indexes | Phase 25 | Zero | Schema syntax verified |
+| `tests/test_database_abstraction.py` | New Database Abstraction test suite | 29 test cases verifying RowWrapper, translator, adapters, pooling, transactions, and schema parity | Phase 24 & 25 | Zero | 29/29 passed in 0.39s (310/310 full suite) |
+
