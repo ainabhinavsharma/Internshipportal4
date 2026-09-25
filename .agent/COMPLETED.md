@@ -102,6 +102,10 @@
 | `INT-DASH-002` | 2026-09-25 | Automated Multi-Cluster Entity Metrics & Anomaly Detector | Service unit tests | `services/integrity_service.py` | None | Audits users, apps, enrollments, payments, interns, certs, and 6 anomaly types | Passed 100% |
 | `INT-DASH-003` | 2026-09-25 | Safe Anomaly Remediation & Self-Healing Action Framework | Remediation tests | `services/integrity_service.py`, `routes/admin.py` | None | Dry-run and execution support for expiring stale listings and archiving dead-letters | Passed 100% |
 | `INT-DASH-004` | 2026-09-25 | Platform Data Integrity Automated Test Suite | Pytest (15 tests) & full suite (325 tests) | `tests/test_integrity_dashboard.py`, `tests/conftest.py` | None | 100% pass across metrics, anomalies, self-healing, and admin RBAC | 15/15 + 325/325 passed |
+| `REL-001` | 2026-09-25 | Production Release Guide & Deployment Runbook | Doc audit | `docs/PRODUCTION_RELEASE_GUIDE.md` | None | Covers 4 verification pillars, §55 canary deployment SOP, rollback SOP, and §64 blockers | Verified |
+| `REL-002` | 2026-09-25 | Automated Final End-to-End User Acceptance Test Suite | Pytest (11 tests) | `tests/e2e/test_final_uat.py` | None | End-to-end verification of all 9 business flows, health probes, and continuous lifecycle | 11/11 passed |
+| `REL-003` | 2026-09-25 | Gate 19 Production Release Readiness Verifier | Script audit & report | `scripts/verify_release_readiness.py`, `docs/RELEASE_READINESS_REPORT.md` | Pre-release backup | Automated verification of 6 release gates and 16 release blocker criteria | 100% Approved |
+
 
 
 
