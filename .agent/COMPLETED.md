@@ -73,6 +73,22 @@
 | `OBS-003` | 2026-09-25 | Upgraded liveness (`/health`) and deep readiness (`/ready`) probes | Probe tests | `app.py`, `services/telemetry_service.py` | None | Verifies DB, WAL mode, schema tables, and outbox queue | 3/3 tests passed |
 | `OBS-004` | 2026-09-25 | Production incident response runbook for all 9 failure scenarios | Runbook inspection | `docs/INCIDENT_RUNBOOK.md` | None | Comprehensive DETECT -> CONTAIN -> MITIGATE -> RESOLVE protocol | 9 SOPs documented |
 | `OBS-005` | 2026-09-25 | Observability & Telemetry automated test suite | Pytest (12 tests) & full regression | `tests/test_observability.py` | None | Guarantees observability features remain functional across updates | 12/12 passed (229/229 full) |
+| `GL-INV-001` | 2026-09-25 | Baseline characterization test suite for tutor chat & learning flow | Pytest (9 tests) | `tests/learning/test_characterization.py` | None | Pins pre-v2 tutor behavior against regression | 9/9 passed |
+| `GL-DATA-001` | 2026-09-25 | Schema models for concepts, student mastery, events, sessions, misconceptions | DB initialization & migrations | `services/learning/learning_models.py`, `app.py` | Adds 5 `gl_*` tables | Full entity clustering for intelligent tutoring | Initialized & verified |
+| `GL-CONCEPT-001`| 2026-09-25 | Concept DAG prerequisite graph engine with cycle detection | Unit tests | `services/learning/concept_service.py` | None | Prevents cyclic dependencies in curriculum | 3/3 passed |
+| `GL-MASTERY-001`| 2026-09-25 | Deterministic student mastery policy scoped to (student_id, concept_id) | Policy unit tests | `services/learning/mastery_policy.py` | None | Bayesian evidence-weighted updates & velocity | Passed 100% |
+| `GL-EVAL-001` | 2026-09-25 | Schema-validated structured evaluator with NLP fallback | Evaluator tests | `services/learning/evaluator.py` | None | Fallback triggers on parse errors or malformed LLM responses | 3/3 passed |
+| `GL-MISCONCEPTION-001`| 2026-09-25 | Diagnostic misconception catalog & 0.65 score cap | Catalog tests | `services/learning/misconception_service.py` | None | Active misconceptions prevent false mastery | Passed 100% |
+| `GL-ADAPT-001`| 2026-09-25 | 10 Adaptive next-action decision hierarchy | Action engine tests | `services/learning/adaptive_engine.py` | None | Deterministic pedagogical action selection | 10/10 verified |
+| `GL-REVIEW-001`| 2026-09-25 | Spaced review scheduler with 5 differentiated intervals | Review scheduler tests | `services/learning/spaced_review.py` | None | Retention and memory decay protection | Passed 100% |
+| `GL-SESSION-001`| 2026-09-25 | Session resume, turn idempotency, and atomic transaction execution | Session service tests | `services/learning/session_service.py` | None | Deduplicates replays and protects DB consistency | Passed 100% |
+| `GL-RAG-001` | 2026-09-25 | Grounded RAG tutor with curriculum fallback | RAG tutor tests | `services/learning/rag_tutor.py`, `app.py` | None | Eliminates halluncinations; curriculum-grounded prompts | Passed 100% |
+| `GL-UI-001` | 2026-09-25 | Adaptive UI endpoints (`/api/learning/v2/*`) and dashboard integration | API endpoint tests | `app.py`, `templates/course_learn.html` | None | Full API suite for intelligent tutoring interactions | 6/6 passed |
+| `GL-METRICS-001`| 2026-09-25 | Admin & mentor learning analytics dashboard (`/admin/learning-analytics`) | RBAC & route tests | `app.py`, `templates/admin_learning_analytics.html` | None | Real-time mastery distribution, misconceptions, velocity | Passed 100% |
+| `GL-QA-001` | 2026-09-25 | Synthetic learner simulation suite (7 archetypes + Golden Journey) | Synthetic simulation tests | `tests/learning/test_synthetic_learners.py` | None | Proves differentiated behavior across learner archetypes | 6/6 passed |
+| `GL-MIGRATION-001`| 2026-09-25 | Active learner migration script & verification report | Migration execution | `scripts/migrate_learning_v2.py`, `docs/STUDENT_LEARNING_MIGRATION_REPORT.md` | Populates `gl_*` | 101 concepts, 44 learners, 901 attempts, 0 data loss | 100% verified |
+| `GL-ROLLOUT-001`| 2026-09-25 | Zero-downtime feature flag (`GUIDED_LEARNING_V2=false`) & fallback | Flag toggling tests | `app.py` | None | 100% backward compatible fallback to V1 chat | Verified |
+
 
 
 

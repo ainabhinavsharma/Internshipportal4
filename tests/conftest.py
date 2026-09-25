@@ -18,6 +18,7 @@ from app import app as _app, init_db, get_db, set_password_hash, create_session,
 def app_client():
     db_fd, db_path = tempfile.mkstemp(suffix=".db")
     _app.config["TESTING"] = True
+    _app.config["DATABASE"] = db_path
     os.environ["DB_FILE"] = db_path
     
     # Disable CSRF globally during tests by adding everything to exempt list
@@ -34,6 +35,7 @@ def app_client():
     with _app.test_client() as client:
         yield client, db_path
         
+    _app.config.pop("DATABASE", None)
     os.close(db_fd)
     try:
         os.unlink(db_path)
@@ -43,6 +45,7 @@ def app_client():
 
 def seed_intern(db_path, email="test_intern99@test.com", password="TestPass123", name="Test Intern", status="Accepted"):
     os.environ["DB_FILE"] = db_path
+    _app.config["DATABASE"] = db_path
     with get_db() as conn:
         conn.execute(
             "INSERT OR IGNORE INTO intern_accounts "

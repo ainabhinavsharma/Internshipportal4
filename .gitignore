@@ -60,6 +60,7 @@ scratch/
 
 # Temporary, Migration, and Seed Scripts
 migrate_*.py
+!scripts/migrate_learning_v2.py
 seed_*.py
 *seed*.py
 *compensate*.py

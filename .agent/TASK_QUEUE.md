@@ -119,7 +119,26 @@
 - [x] OBS-001 Request ID Tracing & Latency Header Injection (`g.request_id`, `X-Request-ID`, `X-Request-Duration-Ms`, status history propagation)
 - [x] OBS-002 Centralized Telemetry & Metrics Service (`services/telemetry_service.py`, thread-safe collection of requests, status code buckets, failure categorizations, latency percentiles)
 - [x] OBS-003 Upgraded Liveness (`/health`) and Readiness (`/ready`) Probes with DB, WAL mode, tables, and outbox checks
-- [x] OBS-004 Production Incident Runbook (`docs/INCIDENT_RUNBOOK.md` covering all 9 disaster scenarios with DETECT, CONTAIN, MITIGATE, RESOLVE, POST-MORTEM lifecycle)
 - [x] OBS-005 Observability & Telemetry Test Suite (`tests/test_observability.py` 12/12 passed, 229/229 full suite passed)
+
+## P1 — Session 15: Guided Learning 2.0 (COMPLETE)
+
+- [x] GL-INV-001 Current Guided Learning Audit & Characterization Tests (`tests/learning/test_characterization.py`)
+- [x] GL-DATA-001 Data Models & Schemas (`gl_concepts`, `gl_student_mastery`, `gl_learning_events`, `gl_learning_sessions`, `gl_misconception_catalog`)
+- [x] GL-CONCEPT-001 Concept Model, Prerequisite DAG & Learning Objectives (`services/learning/concept_service.py`)
+- [x] GL-MASTERY-001 Student Mastery Model & Deterministic Policy (`services/learning/mastery_policy.py`)
+- [x] GL-EVAL-001 Schema-Validated Structured Evaluator with Fallback (`services/learning/evaluator.py`)
+- [x] GL-MISCONCEPTION-001 Misconception Detection & Catalog Service (`services/learning/misconception_service.py`)
+- [x] GL-ADAPT-001 Adaptive Next-Action Engine (10 Actions) (`services/learning/adaptive_engine.py`)
+- [x] GL-REVIEW-001 Spaced Review Scheduler (`services/learning/spaced_review.py`)
+- [x] GL-SESSION-001 Session Resume & Turn Idempotency (`services/learning/session_service.py`)
+- [x] GL-CONCURRENCY-001 Streaming Safety & Concurrency Control (`services/learning/session_service.py`)
+- [x] GL-RAG-001 Grounded RAG Tutor with Curriculum Fallback (`services/learning/rag_tutor.py`)
+- [x] GL-UI-001 Adaptive UI Endpoints & Learning Dashboard (`templates/course_learn.html`, `app.py`)
+- [x] GL-METRICS-001 Mentor & Admin Learning Analytics (`templates/admin_learning_analytics.html`, `/admin/learning-analytics`)
+- [x] GL-QA-001 Synthetic Learner Simulation Suite (7 Archetypes + Golden Journey) (`tests/learning/test_synthetic_learners.py`)
+- [x] GL-MIGRATION-001 Active Learner Migration Script (`scripts/migrate_learning_v2.py` & `docs/STUDENT_LEARNING_MIGRATION_REPORT.md`)
+- [x] GL-ROLLOUT-001 Feature Flag & Rollout Fallback (`GUIDED_LEARNING_V2`)
+
 
 

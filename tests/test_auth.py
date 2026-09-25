@@ -41,6 +41,7 @@ def client():
     with app.test_client() as client:
         yield client
 
+    app.config.pop("DATABASE", None)
     gc.collect()
     try:
         if os.path.exists(db_path):

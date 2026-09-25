@@ -564,6 +564,63 @@
 - Commit and push Session 14 deliverables to `origin/main` (`Internshipportal4`).
 - Proceed to Session 15 / Phase 22 (Guided Learning 2.0).
 
+## Session: 2026-09-25 (Session 15: Guided Learning 2.0)
+
+### Started
+- Time: 15:45
+- Trigger: User instructed to proceed with Phase 22 (Guided Learning 2.0).
+- Target Remote: `https://github.com/ainabhinavsharma/Internshipportal4.git` (Remote `origin`, branch `main`).
+
+### Completed Work
+1. **Characterization Tests & Baseline Pinning (GL-INV-001)**:
+   - Authored `tests/learning/test_characterization.py` (9 tests) verifying legacy behavior: unauthenticated redirects, enrolled rendering, CSRF protection, input validation, accidental autofill rejection, 404 handling, and tutor progress endpoint.
+   - Result: 9/9 passed.
+2. **Data Models & Schemas (GL-DATA-001)**:
+   - Created `services/learning/learning_models.py` defining SQLite tables: `gl_concepts`, `gl_student_mastery`, `gl_learning_events`, `gl_learning_sessions`, `gl_misconception_catalog` with indexes on `(student_id, concept_id)`, `domain`, `session_id`, `created_at`.
+   - Integrated `init_learning_tables(conn)` into `init_db()` in `app.py`.
+3. **Concept Prerequisite DAG Graph Service (GL-CONCEPT-001)**:
+   - Created `services/learning/concept_service.py` with DFS cycle detection (`ConceptPrerequisiteCycleError`), prerequisite eligibility checks, domain querying, and topological sort.
+4. **Deterministic Student Mastery Model (GL-MASTERY-001)**:
+   - Created `services/learning/mastery_policy.py` scoped strictly to `(student_id, concept_id)`.
+   - Incorporates Bayesian/evidence-weighted updates, streak bonus (+0.07), velocity adaptation, NOVICE (<0.35), DEVELOPING (0.35-0.69), PROFICIENT (0.70-0.89), and MASTERED (>=0.90 with 2+ successes and 0 misconceptions).
+5. **Schema-Validated Structured Evaluator (GL-EVAL-001)**:
+   - Created `services/learning/evaluator.py` enforcing strict JSON schema for LLM evaluations with deterministic NLP heuristic fallback (token stemming, code block detection, criteria matching).
+6. **Diagnostic Misconception Catalog & Score Caps (GL-MISCONCEPTION-001)**:
+   - Created `services/learning/misconception_service.py` for registering misconceptions, attaching triggers, tracking active flaws, and enforcing a 0.65 score cap while misconceptions are unresolved.
+7. **Adaptive Next-Action Decision Engine (GL-ADAPT-001)**:
+   - Created `services/learning/adaptive_engine.py` implementing a 10-action hierarchy: ESCALATE_TO_MENTOR, REVIEW, REMEDIATE, EXPLAIN, RETEST, SIMPLIFY, GIVE_EXAMPLE, ADVANCE, PRACTICE, ASK_GUIDED_QUESTION.
+8. **Spaced Review Scheduler (GL-REVIEW-001)**:
+   - Created `services/learning/spaced_review.py` with SuperMemo-inspired interval calculations across 5 differentiated categories (NEW, REMEDIATION, REINFORCEMENT, MASTERY_VALIDATION, REVIEW) with urgency scoring and due review queries.
+9. **Session Resume, Idempotency & Concurrency (GL-SESSION-001, GL-CONCURRENCY-001)**:
+   - Created `services/learning/session_service.py` handling session state resumption, reload resilience, idempotency key caching, and single atomic SQLite transactions wrapping evaluation, mastery update, action selection, and event logging.
+10. **Grounded RAG Tutor (GL-RAG-001)**:
+    - Created `services/learning/rag_tutor.py` retrieving canonical syllabus context and structuring prompts around adaptive actions to prevent hallucinations.
+11. **Adaptive REST APIs & Analytics Dashboard (GL-UI-001, GL-METRICS-001)**:
+    - Implemented `/api/learning/v2/session`, `/api/learning/v2/turn`, `/api/learning/v2/reviews-due`, `/api/learning/v2/concept-tree/<int:course_id>`.
+    - Implemented `/admin/learning-analytics` with HTML and JSON rendering.
+    - Updated `require_role()` to support tuples/sets/lists of roles.
+    - Added V2 prompt integration in `course_subtopic_chat` streaming endpoint.
+12. **Synthetic Learner Test Suite (GL-QA-001)**:
+    - Authored `tests/learning/test_synthetic_learners.py` covering 7 synthetic archetypes (Fast Learner, Slow Learner, High Confidence / Low Mastery, Repeated Misconception, Interrupted Learner, Guesser, Golden Journey).
+    - Result: 6/6 passed.
+13. **Active Learner Migration Script (GL-MIGRATION-001)**:
+    - Created `scripts/migrate_learning_v2.py` migrating 101 concepts and 44 active learners across 901 historical quiz attempts with 100% data preservation and 0 data loss.
+    - Authored `docs/STUDENT_LEARNING_MIGRATION_REPORT.md`.
+14. **Test Suite Isolation Fix & Complete Verification**:
+    - Resolved cross-suite test state leakage by setting and popping `_app.config["DATABASE"]` in test fixtures (`tests/conftest.py`, `tests/test_auth.py`).
+    - Dedicated synthetic student isolation in `synthetic_env` fixture.
+    - Results:
+      - `pytest -v tests/learning/`: **34/34 passed (100% in 8.74s)**.
+      - Full regression suite (`pytest -v -k "not chromium"`): **263/263 passed (100% in 72.42s)**.
+    - Safety checks:
+      - `python scripts/verify_env_safety.py`: PASS (0 secrets, 0 databases).
+      - `python scripts/audit_security.py`: ALL PASS (Bandit 0 issues, Pip-audit 0 CVEs, Secret verifier 0 issues).
+      - `python scripts/check_data_integrity.py`: PASS (0 critical issues).
+
+### Next Steps / Session 16 Transition
+- Commit and push Session 15 deliverables to `origin/main` (`Internshipportal4`).
+- Proceed to Session 16 / Phase 23 (Production Resilience, Database Optimization & Cache Abstraction).
+
 
 
 

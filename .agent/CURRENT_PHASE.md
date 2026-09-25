@@ -1,54 +1,60 @@
 # Current Phase
 
-Phase: Session 14 (Phase 21 Observability, Telemetry & Incident Response)
+Phase: Session 15 (Phase 22 Guided Learning 2.0)
 Master Plan: INTERNSHIPPORTAL4_LOCAL_AI_AGENT_MASTER_PLAN.md
 Target Remote: https://github.com/ainabhinavsharma/Internshipportal4.git
-Status: COMPLETE (Phase 21 Gates Passed)
+Status: COMPLETE (Ready to Commit & Push)
 
 Current Task:
-Commit and push Session 14 deliverables to Internshipportal4, proceed to Session 15 / Phase 22 (Guided Learning 2.0).
+GL-INV-001 through GL-ROLLOUT-001: Implement characterization tests, concept model DAG, mastery policy, structured evaluator, adaptive next-action engine, spaced review, session resume, synthetic learner testing, active learner migration, and zero-downtime feature flag.
 
-Completed in Session 14:
-- OBS-001: Request ID Tracing & Latency Header Injection:
-  - Preserved inbound `X-Request-ID` from proxies or generated fresh UUIDv4.
-  - Injected `X-Request-ID` and `X-Request-Duration-Ms` on all responses in `app.py`.
-  - Propagated active `request_id` into `application_status_history` and `enrollment_status_history`.
-- OBS-002: Centralized Telemetry & Metrics Service:
-  - Created `services/telemetry_service.py` with thread-safe `TelemetryCollector`.
-  - Tracks 2xx, 3xx, 4xx, 5xx status buckets, specific HTTP status codes, and normalized endpoint hits.
-  - Tracks categorized domain failure counters: `db_failures`, `email_failures`, `payment_failures`, `ai_failures`, `login_failures`, `upload_failures`, `auth_failures`, `csrf_rejects`.
-  - Calculates moving latency percentiles (min, avg, p50, p95, p99, max).
-- OBS-003: Upgraded Liveness & Readiness Probes:
-  - Upgraded `/health`: Lightweight HTTP 200 liveness probe returning process status, service name, and uptime.
-  - Implemented `/ready`: Deep HTTP 200/503 readiness probe evaluating DB connectivity, WAL mode, core tables accessibility, and outbox dead-letter queue health.
-  - Implemented `/admin/telemetry`: Admin-only real-time metrics dashboard endpoint.
-- OBS-004: Production Incident Runbook:
-  - Authored `docs/INCIDENT_RUNBOOK.md` detailing the 5-stage lifecycle (DETECT -> CONTAIN -> MITIGATE -> RESOLVE -> POST-MORTEM).
-  - Provided complete SOPs covering all 9 required production failure modes: site down, database corruption, email outage, payment failure, AI outage, authentication lockout, file storage exhaustion, bad deployment rollback, and security breach.
-- OBS-005: Observability Automated Test Suite:
-  - Created `tests/test_observability.py` with 12 tests covering request ID tracing, health/readiness probes, metrics accumulation, failure counters, latency statistics, and JSON logger format.
-  - **Result: 12/12 passed (100% in 3.41s)**.
-- Test Results:
-  - Full regression test suite (`pytest -v -k "not chromium"`): **229/229 passed (100% in 25.40s)**.
-- Safety Verifications:
-  - `python scripts/verify_env_safety.py`: 0 tracked secrets, 0 databases.
-  - `python scripts/audit_security.py`: All 3 security audit checks passed (Bandit, pip-audit, secret scanner).
-  - `python scripts/check_data_integrity.py`: 0 critical database integrity issues.
+Completed in Session 15:
+- GL-INV-001: Characterization Tests & Baseline Pinning (`tests/learning/test_characterization.py` - 9/9 passed).
+- GL-DATA-001: Normalized DB Schemas for Guided Learning 2.0 (`services/learning/learning_models.py`):
+  - `gl_concepts`, `gl_student_mastery`, `gl_learning_events`, `gl_learning_sessions`, `gl_misconception_catalog`.
+  - Wired into `init_db()` in `app.py`.
+- GL-CONCEPT-001: Concept Prerequisite DAG Graph Service (`services/learning/concept_service.py`):
+  - Cycle detection (`ConceptPrerequisiteCycleError`), prerequisite eligibility validation, topological sorting.
+- GL-MASTERY-001: Deterministic Student Mastery Model (`services/learning/mastery_policy.py`):
+  - Scoped to `(student_id, concept_id)`, Bayesian/evidence-weighted updates, dynamic momentum, streak boost (+0.07), velocity adaptation, NOVICE/DEVELOPING/PROFICIENT/MASTERED levels with strict criteria.
+- GL-EVAL-001: Schema-Validated Structured Evaluator (`services/learning/evaluator.py`):
+  - Strict JSON schema parser with deterministic NLP heuristic fallback (token stemming, code block detection, criteria matching).
+- GL-MISCONCEPTION-001: Diagnostic Misconception Catalog & Score Caps (`services/learning/misconception_service.py`):
+  - Automatic detection and attachment, 0.65 mastery score cap enforcement while misconceptions remain active.
+- GL-ADAPT-001: 10 Adaptive Next-Actions Hierarchy (`services/learning/adaptive_engine.py`):
+  - ESCALATE_TO_MENTOR, REVIEW, REMEDIATE, EXPLAIN, RETEST, SIMPLIFY, GIVE_EXAMPLE, ADVANCE, PRACTICE, ASK_GUIDED_QUESTION.
+- GL-REVIEW-001: Spaced Review Scheduler (`services/learning/spaced_review.py`):
+  - Differentiated intervals: NEW (1.0d), REMEDIATION (0.5d), REINFORCEMENT (1.5d), MASTERY_VALIDATION (2.0d), REVIEW (expanding ease factor).
+- GL-SESSION-001 & GL-CONCURRENCY-001: Atomic Turn Execution & Session Resilience (`services/learning/session_service.py`):
+  - Session state reload resilience, turn idempotency key deduplication, single atomic SQLite transaction wrapping evaluation, mastery update, action selection, and event logging.
+- GL-RAG-001: Grounded RAG Tutor (`services/learning/rag_tutor.py`):
+  - Canonical syllabus retrieval, anti-hallucination bounds, action-guided pedagogical prompts.
+- GL-UI-001 & GL-METRICS-001: Adaptive REST APIs & Analytics Dashboard (`app.py`, `templates/admin_learning_analytics.html`):
+  - `/api/learning/v2/session` (POST)
+  - `/api/learning/v2/turn` (POST)
+  - `/api/learning/v2/reviews-due` (GET)
+  - `/api/learning/v2/concept-tree/<int:course_id>` (GET)
+  - `/admin/learning-analytics` (GET) for admin and mentor roles with role-based access control.
+- GL-QA-001: Synthetic Learner Test Suite (7 Archetypes + Golden Journey) (`tests/learning/test_synthetic_learners.py` - 6/6 passed):
+  - Fast Learner, Slow Learner, High Confidence / Low Mastery, Repeated Misconception / Escalation, Interrupted Learner / Replay, Golden Journey.
+- GL-MIGRATION-001: Historical Learner Migration (`scripts/migrate_learning_v2.py`, `docs/STUDENT_LEARNING_MIGRATION_REPORT.md`):
+  - 101 concepts migrated with DAG links.
+  - 44 active learners across 901 historical quiz attempts migrated with 100% data preservation and 0 data loss.
+- GL-ROLLOUT-001: Zero-Downtime Rollout & Feature Flag (`GUIDED_LEARNING_V2=false` default):
+  - 100% backwards compatible fallback to V1 tutor chat when flag is disabled.
 
-In Progress:
-- Commit and push Session 14 deliverables to `origin/main` (`Internshipportal4`)
+Test Results:
+- `pytest -v tests/learning/`: **34/34 passed (100% in 8.74s)**
+- Full regression suite (`pytest -v -k "not chromium"`): **263/263 passed (100% in 72.42s)**
 
-Blocked:
-- None
+Safety Verifications:
+- `python scripts/verify_env_safety.py`: PASS (0 tracked secrets, 0 databases)
+- `python scripts/audit_security.py`: ALL PASS (Bandit 0 issues, Pip-audit 0 CVEs, Secret verifier 0 issues)
+- `python scripts/check_data_integrity.py`: PASS (0 critical issues)
 
 Next Phase:
-- Session 15 / Phase 22 (Guided Learning 2.0: Student Model, Mastery Policy, Adaptive Next Action, RAG, Synth Testing)
+- Commit and push Session 15 deliverables to `origin/main` (`Internshipportal4`)
+- Next: Session 16 / Phase 23 (Production Resilience, Redis Caching / Session Store, Database Optimization)
 
 Last Verified:
-2026-09-25 15:40
-
-Last Test Result:
-- `pytest tests/test_observability.py` -> 12 passed in 3.41s (100% pass)
-- `pytest -v -k "not chromium"` -> 229 passed, 6 deselected in 25.40s (100% pass)
-- `python scripts/verify_env_safety.py` -> 0 tracked secrets, 0 databases
-- `python scripts/audit_security.py` -> 0 vulnerabilities
+2026-09-25 16:33

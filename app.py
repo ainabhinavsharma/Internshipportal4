@@ -18,7 +18,8 @@ import base64
 import string
 import random
 import threading
-from datetime import datetime, date, timedelta, time as dtime
+from datetime import datetime, date, timedelta, timezone, time as dtime
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
@@ -2712,12 +2713,20 @@ def init_db():
                         seen_att[key] = att["id"]
                         if canon_id != att["intern_id"] or (canon_email and att["email"] != canon_email):
                             conn.execute("UPDATE attendance SET intern_id=?, email=? WHERE id=?", (canon_id, canon_email, att["id"]))
+
+                # Guided Learning 2.0 Schema Initialization
+                try:
+                    from services.learning.learning_models import init_learning_tables
+                    init_learning_tables(conn)
+                except Exception as ex_gl:
+                    log_error("init_learning_tables", ex_gl)
             except Exception as ex_recon:
                 log_error("init_db_subsystems_recon", ex_recon)
 
             conn.commit()
         except Exception as ex_reconcile:
             log_error("init_db_reconciliation_total", ex_reconcile)
+
 
 
 try:
@@ -3537,8 +3546,16 @@ def cleanup_expired_sessions():
 
 def require_role(role):
     user = get_current_user()
-    if not user or user.get("role") != role: return None
+    if not user:
+        return None
+    user_role = user.get("role")
+    if isinstance(role, (list, tuple, set)):
+        if user_role not in role:
+            return None
+    elif user_role != role:
+        return None
     return user
+
 
 
 def is_admin_request():
@@ -5079,12 +5096,16 @@ def course_subtopic_chat(course_id, subtopic_id):
         subtopic_brief = subtopic["brief"]
         guidelines = subtopic["prompt_seed"]
 
+        gl_v2_active = is_guided_learning_v2_enabled()
+        gl_session = None
+
         prompt = (
             f"<system_identity>\n"
             f"You are the dedicated 1-on-1 AI Technical Tutor & Senior Engineering Mentor for DBERT's Internship Program.\n"
             f"Your student is {first_name}. You are warm, encouraging, intellectually rigorous, and passionate about guiding {first_name} to master every concept.\n"
             f"You communicate with clean Markdown: bold essential terms, format code snippets in language-specific code blocks (e.g. ```python, ```javascript, ```sql), and use structured spacing.\n"
             f"</system_identity>\n\n"
+
             f"<curriculum_context>\n"
             f"- Course: {course_name}\n"
             f"- Module: Day {day_num} — {chapter_name}\n"
@@ -5121,6 +5142,27 @@ def course_subtopic_chat(course_id, subtopic_id):
             f"</current_student_input>\n\n"
             f"Respond to {first_name} now as their adaptive, expert AI tutor:"
         )
+
+        if gl_v2_active:
+            try:
+                from services.learning.session_service import LearningSessionService
+                from services.learning.concept_service import ConceptService
+                from services.learning.rag_tutor import GroundedRAGTutor
+
+                gl_session = LearningSessionService.get_or_create_session(conn, intern["id"], course_id, subtopic_id)
+                concept = ConceptService.get_concept_by_subtopic(conn, subtopic_id)
+                if concept:
+                    grounded = GroundedRAGTutor.retrieve_grounded_context(conn, concept, user_message)
+                    prompt = GroundedRAGTutor.build_tutor_prompt(
+                        student_name=intern.get("name") or "Intern",
+                        concept=concept,
+                        action=gl_session.current_action,
+                        grounded_context=grounded["grounded_text"],
+                        conversation_history=valid_history,
+                        current_input=user_message
+                    )
+            except Exception as ex_v2_prompt:
+                log_error("guided_learning_v2_prompt", ex_v2_prompt)
 
         # Check BYOK key first (UP2.5) — fetch latest active key
         user_key_row = conn.execute(
@@ -5177,8 +5219,18 @@ def course_subtopic_chat(course_id, subtopic_id):
                         (enrollment_id, subtopic_id, full_reply)
                     )
                     conn.commit()
+
+                    if gl_v2_active and gl_session:
+                        from services.learning.session_service import LearningSessionService
+                        LearningSessionService.process_turn_atomic(
+                            conn=conn,
+                            session_id=gl_session.session_id,
+                            student_id=intern_id,
+                            student_input=user_message
+                        )
             except Exception as e:
                 log_error("save_chat_stream", e)
+
 
         yield f"data: {json.dumps({'done': True})}\n\n"
 
@@ -5253,8 +5305,239 @@ def course_learn_page(course_id):
     )
 
 
+# ════════════════════════════════════════════════════════════════════════════
+# Phase 22 — Guided Learning 2.0 API & Feature Flag
+# ════════════════════════════════════════════════════════════════════════════
+
+def is_guided_learning_v2_enabled() -> bool:
+    """Checks feature flag status from env or persistent config."""
+    env_val = os.environ.get("GUIDED_LEARNING_V2", "").lower()
+    if env_val in ("1", "true", "yes", "on"):
+        return True
+    if env_val in ("0", "false", "no", "off"):
+        return False
+    return get_config("GUIDED_LEARNING_V2", "false").lower() in ("1", "true", "yes", "on")
+
+
+@app.route("/api/learning/v2/session", methods=["POST"])
+def api_learning_v2_session():
+    """Initializes or resumes a persistent Guided Learning 2.0 session."""
+    intern = current_intern()
+    if not intern:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
+
+    data = request.get_json(silent=True) or {}
+    course_id = data.get("course_id")
+    subtopic_id = data.get("subtopic_id")
+
+    if not course_id:
+        return jsonify({"status": "error", "message": "course_id is required"}), 400
+
+    with get_db() as conn:
+        enrollment = conn.execute(
+            "SELECT id FROM course_enrollments WHERE (intern_id = ? OR (email IS NOT NULL AND LOWER(email) = LOWER(?))) AND course_id = ?",
+            (intern["id"], intern.get("email") or "", course_id)
+        ).fetchone()
+        if not enrollment:
+            return jsonify({"status": "error", "message": "Not enrolled in this course"}), 403
+
+        from services.learning.session_service import LearningSessionService
+        session_obj = LearningSessionService.get_or_create_session(conn, intern["id"], course_id, subtopic_id)
+        state = LearningSessionService.resume_session_state(conn, session_obj.session_id, intern["id"])
+
+    return jsonify({"status": "success", "data": state})
+
+
+@app.route("/api/learning/v2/turn", methods=["POST"])
+def api_learning_v2_turn():
+    """Executes a single atomic learning turn with structured evaluation and mastery update."""
+    intern = current_intern()
+    if not intern:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
+
+    data = request.get_json(silent=True) or {}
+    session_id = data.get("session_id")
+    message = (data.get("message") or "").strip()
+    idempotency_key = data.get("idempotency_key")
+
+    if not session_id or not message:
+        return jsonify({"status": "error", "message": "session_id and message are required"}), 400
+
+    with get_db() as conn:
+        from services.learning.session_service import LearningSessionService
+        turn_result = LearningSessionService.process_turn_atomic(
+            conn=conn,
+            session_id=session_id,
+            student_id=intern["id"],
+            student_input=message,
+            idempotency_key=idempotency_key
+        )
+
+    return jsonify({"status": "success", "data": turn_result})
+
+
+@app.route("/api/learning/v2/reviews-due", methods=["GET"])
+def api_learning_v2_reviews_due():
+    """Lists concepts scheduled for spaced repetition review."""
+    intern = current_intern()
+    if not intern:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
+
+    with get_db() as conn:
+        from services.learning.spaced_review import SpacedReviewScheduler
+        due = SpacedReviewScheduler.get_due_reviews_for_student(conn, intern["id"])
+
+    return jsonify({"status": "success", "count": len(due), "reviews": due})
+
+
+@app.route("/api/learning/v2/concept-tree/<int:course_id>", methods=["GET"])
+def api_learning_v2_concept_tree(course_id):
+    """Returns domain concept DAG with student's current mastery levels."""
+    intern = current_intern()
+    if not intern:
+        return jsonify({"status": "error", "message": "Authentication required"}), 401
+
+    with get_db() as conn:
+        course = conn.execute("SELECT domain FROM courses WHERE id = ?", (course_id,)).fetchone()
+        if not course:
+            return jsonify({"status": "error", "message": "Course not found"}), 404
+
+        from services.learning.concept_service import ConceptService
+        from services.learning.mastery_policy import MasteryPolicy
+        concepts = ConceptService.list_concepts_for_domain(conn, course["domain"])
+
+        tree_nodes = []
+        for c in concepts:
+            m = MasteryPolicy.get_or_create_mastery(conn, intern["id"], c.concept_id)
+            tree_nodes.append({
+                "concept_id": c.concept_id,
+                "name": c.name,
+                "difficulty": c.difficulty,
+                "subject": c.subject,
+                "subtopic_id": c.subtopic_id,
+                "prerequisites": c.prerequisites,
+                "mastery_score": m.mastery_score,
+                "mastery_level": m.mastery_level,
+                "total_attempts": m.total_attempts,
+                "next_review_at": m.next_review_at
+            })
+
+    return jsonify({"status": "success", "course_id": course_id, "domain": course["domain"], "concepts": tree_nodes})
+
+
+@app.route("/admin/learning-analytics", methods=["GET"])
+def admin_learning_analytics():
+    """Admin and Mentor dashboard for Guided Learning 2.0 analytics and struggle detection."""
+    user = require_admin() or require_role(["admin", "mentor"])
+    if not user:
+
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"status": "error", "message": "Unauthorized"}), 401
+        return redirect("/admin/login")
+
+    with get_db() as conn:
+        # Total active learners
+        total_learners = conn.execute("SELECT COUNT(DISTINCT student_id) FROM gl_student_mastery").fetchone()[0] or 0
+
+        # Mastery counts
+        levels = conn.execute(
+            "SELECT mastery_level, COUNT(*) as cnt FROM gl_student_mastery GROUP BY mastery_level"
+        ).fetchall()
+        level_map = {r["mastery_level"]: r["cnt"] for r in levels}
+        mastered_count = level_map.get("MASTERED", 0)
+        developing_count = level_map.get("DEVELOPING", 0)
+
+        # Reviews due
+        now_iso = datetime.now(timezone.utc).isoformat()
+        due_reviews_count = conn.execute(
+            "SELECT COUNT(*) FROM gl_student_mastery WHERE next_review_at IS NOT NULL AND next_review_at <= ?",
+            (now_iso,)
+        ).fetchone()[0] or 0
+
+        # Escalations / Struggle indicators
+        escalation_rows = conn.execute(
+            """
+            SELECT m.student_id, m.concept_id, m.total_attempts, m.successful_attempts, m.mastery_level,
+                   COALESCE(i.email, a.email) as email,
+                   COALESCE(i.name, a.name) as name
+            FROM gl_student_mastery m
+            LEFT JOIN intern_accounts i ON i.id = m.student_id
+            LEFT JOIN applications a ON a.id = m.student_id
+            WHERE m.total_attempts >= 4 AND m.successful_attempts = 0
+            LIMIT 20
+            """
+        ).fetchall()
+        escalations = []
+        for er in escalation_rows:
+            escalations.append({
+                "student_id": er["student_id"],
+                "email": er["email"] or f"student_{er['student_id']}@dbert.test",
+                "name": er["name"] or "Student",
+                "concept_id": er["concept_id"],
+                "total_attempts": er["total_attempts"],
+                "mastery_level": er["mastery_level"],
+                "reason": "Persistent difficulty (>4 attempts with 0 successes)"
+            })
+
+        # Top Misconceptions
+        misc_rows = conn.execute(
+            """
+            SELECT misconception_id, concept_id, label, remediation_strategy
+            FROM gl_misconception_catalog
+            LIMIT 10
+            """
+        ).fetchall()
+        top_misconceptions = []
+        for mr in misc_rows:
+            top_misconceptions.append({
+                "id": mr["misconception_id"],
+                "concept_id": mr["concept_id"],
+                "count": 1,
+                "remediation": mr["remediation_strategy"]
+            })
+
+        # Domain breakdown
+        domain_rows = conn.execute(
+            """
+            SELECT c.domain, COUNT(DISTINCT c.concept_id) as concept_count,
+                   AVG(m.mastery_score) as avg_score,
+                   SUM(CASE WHEN m.mastery_level = 'MASTERED' THEN 1 ELSE 0 END) as mastered_total,
+                   COUNT(m.concept_id) as total_mastery_records
+            FROM gl_concepts c
+            LEFT JOIN gl_student_mastery m ON m.concept_id = c.concept_id
+            GROUP BY c.domain
+            """
+        ).fetchall()
+        domains = []
+        for dr in domain_rows:
+            tot = dr["total_mastery_records"] or 1
+            mastered_rate = (dr["mastered_total"] or 0) / tot
+            domains.append({
+                "domain": dr["domain"],
+                "concept_count": dr["concept_count"],
+                "avg_score": round(dr["avg_score"] or 0.0, 3),
+                "mastery_rate": round(mastered_rate, 3)
+            })
+
+        analytics = {
+            "total_learners": total_learners,
+            "mastered_count": mastered_count,
+            "developing_count": developing_count,
+            "due_reviews_count": due_reviews_count,
+            "escalations": escalations,
+            "top_misconceptions": top_misconceptions,
+            "domains": domains
+        }
+
+    if request.args.get("format") == "json" or request.headers.get("Accept") == "application/json":
+        return jsonify({"status": "success", "analytics": analytics})
+
+    return render_template("admin_learning_analytics.html", analytics=analytics)
+
+
 @app.route("/courses/<int:course_id>/quiz/<int:day_number>", methods=["GET"])
 def course_quiz_page(course_id, day_number):
+
     intern = current_intern()
     if not intern:
         return redirect("/#signin")
