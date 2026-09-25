@@ -140,11 +140,18 @@
 - [x] GL-MIGRATION-001 Active Learner Migration Script (`scripts/migrate_learning_v2.py` & `docs/STUDENT_LEARNING_MIGRATION_REPORT.md`)
 - [x] GL-ROLLOUT-001 Feature Flag & Rollout Fallback (`GUIDED_LEARNING_V2`)
 
-## P1 — Session 16: Monolith Modularization (QUEUED)
+## P1 — Session 16: Monolith Modularization (COMPLETE)
 
-- [ ] MOD-001 Core Authentication Service & Blueprint Extraction (`services/auth_service.py`, `routes/auth.py`)
-- [ ] MOD-002 Application & Enrollment Route Extraction (`routes/applications.py`, `routes/enrollment.py`)
-- [ ] MOD-003 Payment & Marketplace Route & Service Extraction (`services/marketplace_service.py`, `routes/payment.py`, `routes/marketplace.py`)
-- [ ] MOD-004 Role Portals Extraction (`routes/admin.py`, `routes/mentor.py`, `routes/company.py`, `routes/intern.py`)
-- [ ] MOD-005 Specialized Domain Services & Learning Route Extraction (`services/certificate_service.py`, `services/interview_service.py`, `routes/learning.py`)
-- [ ] MOD-006 Full Regression & Characterization Test Suite Run (Zero behavioral regressions across all 263+ tests)
+- [x] MOD-001 Core Authentication Service & Blueprint Extraction (`services/auth_service.py`, `routes/auth.py`)
+- [x] MOD-002 Application & Enrollment Route Extraction (`routes/applications.py`, `routes/enrollment.py`)
+- [x] MOD-003 Payment & Marketplace Route & Service Extraction (`services/marketplace_service.py`, `routes/payment.py`, `routes/marketplace.py`)
+- [x] MOD-004 Role Portals Extraction (`routes/admin.py`, `routes/mentor.py`, `routes/company.py`, `routes/intern.py`)
+- [x] MOD-005 Specialized Domain Services & Learning Route Extraction (`services/certificate_service.py`, `services/interview_service.py`, `routes/learning.py`)
+- [x] MOD-006 Full Regression & Characterization Test Suite Run (18/18 modularization tests passed, 281/281 full suite passed)
+
+## P1 — Session 17: Database Abstraction & PostgreSQL Preparation (QUEUED)
+
+- [ ] DB-ABS-001 Generic Database Adapter Interface (Unified SQLite and PostgreSQL query syntax & dialect adapter)
+- [ ] DB-ABS-002 Connection Pooling and Transaction Management (`services/database/adapter.py`)
+- [ ] DB-ABS-003 Migration Verification Engine for PostgreSQL schema compatibility (`scripts/verify_postgres_compatibility.py`)
+- [ ] DB-ABS-004 Database Abstraction Regression Suite (`tests/test_database_abstraction.py`)

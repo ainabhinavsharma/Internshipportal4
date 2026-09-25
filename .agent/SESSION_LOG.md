@@ -617,9 +617,55 @@
       - `python scripts/audit_security.py`: ALL PASS (Bandit 0 issues, Pip-audit 0 CVEs, Secret verifier 0 issues).
       - `python scripts/check_data_integrity.py`: PASS (0 critical issues).
 
-### Next Steps / Session 16 Transition
-- Commit and push Session 15 deliverables to `origin/main` (`Internshipportal4`).
-- Proceed to Session 16 / Phase 23 (Production Resilience, Database Optimization & Cache Abstraction).
+## Session: 2026-09-25 (Session 16: Monolith Modularization)
+
+### Started
+- Time: 16:45
+- Trigger: User instructed to proceed with Phase 23 (Monolith Modularization).
+- Target Remote: `https://github.com/ainabhinavsharma/Internshipportal4.git` (Remote `origin`, branch `main`).
+
+### Completed Work
+1. **Domain Services Extraction (`services/`)**:
+   - `services/auth_service.py`: Password hashing (PBKDF2:SHA256 with legacy unsalted SHA-256 detection), session token generation/revocation (`user_sessions`), current user resolution (`current_intern`, `current_company`, `current_mentor`, `current_staff`, `require_admin`, `require_role`).
+   - `services/payment_service.py`: Authoritative pricing calculation, Razorpay order/signature verification, payment event audit logging.
+   - `services/notification_service.py`: Central transactional outbox dispatching for applications, enrollments, payments, and certificates.
+   - `services/certificate_service.py`: Serial ID generator (`DBERT-C{c}-I{i}-{rand}`), verification, certificate issuance and lookup.
+   - `services/marketplace_service.py`: Live post validity checks, 3-post concurrency quota, Google-for-Jobs schema.org JSON-LD builder.
+   - `services/interview_service.py`: Static blueprint question bank assembly across 4 domains, candidate eligibility and cooling period calculations.
+   - `services/learning_service.py`: Domain facade wrapping concept DAG, atomic turn execution, spaced review scheduling.
+   - `services/mastery_service.py`: Domain facade wrapping student mastery policy and misconception resolution.
+2. **Modular Flask Blueprints Extraction (`routes/`)**:
+   - `routes/auth.py` (`auth_bp`): `/api/auth/status`, `/intern/login`, `/logout`.
+   - `routes/applications.py` (`applications_bp`): `/intern/my-applications`.
+   - `routes/enrollment.py` (`enrollment_bp`): `/cohort/<int:cohort_id>/enroll`, `/attendance/ping`.
+   - `routes/payment.py` (`payment_bp`): `/api/payment/status`, `/api/payment/razorpay/create-order`, `/api/payment/razorpay/verify-payment`.
+   - `routes/marketplace.py` (`marketplace_bp`): `/company/posts`, `/company/posts/<int:post_id>/publish`, `/company/posts/<int:post_id>/unpublish`, `/company/posts/<int:post_id>/delete`.
+   - `routes/admin.py` (`admin_bp`): `/admin/companies/approve`, `/admin/companies/suspend`, `/admin/telemetry`.
+   - `routes/mentor.py` (`mentor_bp`): `/mentors/slots/<int:slot_id>/book`.
+   - `routes/company.py` (`company_bp`): `/company/applications/<int:app_id>/status`.
+   - `routes/intern.py` (`intern_bp`): `/intern/certificates`.
+   - `routes/learning.py` (`learning_bp`): `/api/learning/v2/session`, `/api/learning/v2/turn`, `/api/learning/v2/reviews-due`, `/api/learning/v2/concept-tree/<int:course_id>`.
+   - `routes/__init__.py`: Central blueprint registration hub registering all 10 domain blueprints.
+3. **Application Integration & CSRF Exemption Hardening (`app.py`)**:
+   - Hardened `_enforce_csrf()`: checks both `request.endpoint` and `request.endpoint.split(".")[-1]` to ensure test fixtures that exempt short names like `"intern_login"` remain 100% compatible with blueprint names like `"auth.intern_login"`.
+   - Registered all blueprints via `from routes import register_blueprints; register_blueprints(app)`.
+4. **Automated Characterization & Modularization Test Suite (`tests/test_modularization.py`)**:
+   - Authored 18 tests covering all 8 domain services and all 10 modular blueprints.
+   - **Result: 18/18 passed in 4.91s**.
+5. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **281 passed, 6 deselected in 91.24s (100% pass rate)**.
+   - Zero regressions observed across legacy application endpoints, learning v2 engine, observability, marketplace, outbox, auth, and student lifecycles.
+6. **Security & Data Safety Verifications**:
+   - `python scripts/verify_env_safety.py`: PASS (0 tracked secrets, 0 databases).
+   - `python scripts/audit_security.py`: ALL PASS (Bandit 0 issues, Pip-audit 0 CVEs, Secret verifier 0 issues).
+   - `python scripts/check_data_integrity.py`: PASS (0 critical issues).
+7. **Agent Documentation Updates**:
+   - Synchronized `.agent/CURRENT_PHASE.md`, `.agent/TASK_QUEUE.md`, `.agent/COMPLETED.md`, `.agent/FILES_CHANGED.md`, and `.agent/SESSION_LOG.md`.
+
+### Next Steps / Session 17 Transition
+- Commit and push Session 16 deliverables to `origin/main` (`Internshipportal4`).
+- Proceed to Session 17 / Phase 24 (Database Abstraction & PostgreSQL Preparation).
+
 
 
 

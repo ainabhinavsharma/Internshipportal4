@@ -88,6 +88,13 @@
 | `GL-QA-001` | 2026-09-25 | Synthetic learner simulation suite (7 archetypes + Golden Journey) | Synthetic simulation tests | `tests/learning/test_synthetic_learners.py` | None | Proves differentiated behavior across learner archetypes | 6/6 passed |
 | `GL-MIGRATION-001`| 2026-09-25 | Active learner migration script & verification report | Migration execution | `scripts/migrate_learning_v2.py`, `docs/STUDENT_LEARNING_MIGRATION_REPORT.md` | Populates `gl_*` | 101 concepts, 44 learners, 901 attempts, 0 data loss | 100% verified |
 | `GL-ROLLOUT-001`| 2026-09-25 | Zero-downtime feature flag (`GUIDED_LEARNING_V2=false`) & fallback | Flag toggling tests | `app.py` | None | 100% backward compatible fallback to V1 chat | Verified |
+| `MOD-001` | 2026-09-25 | Core Authentication service & blueprint extraction | Unit & route tests | `services/auth_service.py`, `routes/auth.py` | None | PBKDF2:SHA256 hashing, session tokens, multi-role auth | Passed 100% |
+| `MOD-002` | 2026-09-25 | Application & Enrollment route extraction | Blueprint tests | `routes/applications.py`, `routes/enrollment.py` | None | Modular applicant tracking, cohort capacity, attendance ping | Passed 100% |
+| `MOD-003` | 2026-09-25 | Payment & Marketplace services and blueprints extraction | Gateway & post tests | `services/payment_service.py`, `services/marketplace_service.py`, `routes/payment.py`, `routes/marketplace.py` | None | Authoritative pricing, Razorpay HMAC, Google Jobs schema | Passed 100% |
+| `MOD-004` | 2026-09-25 | Role Portals blueprint extraction (admin, mentor, company, intern) | Portal route tests | `routes/admin.py`, `routes/mentor.py`, `routes/company.py`, `routes/intern.py` | None | Clean RBAC boundaries for telemetry, slots, candidates, certs | Passed 100% |
+| `MOD-005` | 2026-09-25 | Specialized domain services and learning blueprint extraction | Domain tests | `services/certificate_service.py`, `services/interview_service.py`, `services/notification_service.py`, `services/learning_service.py`, `services/mastery_service.py`, `routes/learning.py`, `routes/__init__.py` | None | Unified blueprint registry, serial generation, RAG facade | Passed 100% |
+| `MOD-006` | 2026-09-25 | Modularization characterization test suite & full regression pass | Pytest (18 tests) & full suite (281 tests) | `tests/test_modularization.py` | None | Guarantees zero behavioral drift across all extracted blueprints | 18/18 + 281/281 passed |
+
 
 
 

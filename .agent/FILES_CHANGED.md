@@ -101,4 +101,23 @@
 | `scripts/migrate_learning_v2.py` | Active learner migration script | Migrated 101 concepts and 44 learners (901 quiz attempts) with 100% data preservation | Phase 22 | Zero | Verified zero data loss |
 | `docs/STUDENT_LEARNING_MIGRATION_REPORT.md` | Active learner migration audit report | Documents 100% data preservation, entity mapping, and verification evidence | Phase 22 | Zero | Document inspection |
 | `tests/learning/` | Complete Guided Learning 2.0 test suites | 34 test cases across characterization, core engine, API/analytics, and 7 synthetic learner archetypes | Phase 22 | Zero | 34/34 passed in 8.74s (263/263 full suite) |
-
+| `services/auth_service.py` | New Authentication & Session service | PBKDF2:SHA256 password hashing, token creation/revocation, multi-role resolution | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `services/payment_service.py` | New High-Level Payment service | Canonical pricing, Razorpay order/signature verification, payment event tracking | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `services/notification_service.py` | New Notification & Dispatch service | Centralized outbox-backed async notification dispatching | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `services/certificate_service.py` | New Certificate domain service | Unique serial ID generation, verification, and earned certificate retrieval | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `services/marketplace_service.py` | New Marketplace domain service | Live post checks, company quota limit checks, Google Jobs JSON-LD schema builder | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `services/interview_service.py` | New AI Interview domain service | Static blueprint question bank assembly, eligibility checks, cooling periods | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `services/learning_service.py` | New Guided Learning domain facade | Facade wrapping concept DAG, atomic turn execution, spaced review | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `services/mastery_service.py` | New Student Mastery domain facade | Facade wrapping mastery policy and misconception catalog | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/auth.py` | New Authentication Blueprint | Modular routes for login, logout, and session status | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/applications.py` | New Applications Blueprint | Modular route for `/intern/my-applications` with interview state | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/enrollment.py` | New Enrollment Blueprint | Modular routes for cohort enrollment and attendance ping | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/payment.py` | New Payment Blueprint | Modular routes for `/api/payment/*` order creation, verification, and webhook | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/marketplace.py` | New Marketplace Blueprint | Modular routes for `/company/posts/*` and `/posts/.../apply` | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/admin.py` | New Admin Blueprint | Modular routes for company moderation, telemetry, and learning analytics | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/mentor.py` | New Mentor Blueprint | Modular route for `/mentors/slots/.../book` with race condition checks | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/company.py` | New Company Blueprint | Modular route for `/company/applications/.../status` with certificate gating | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/intern.py` | New Intern Blueprint | Modular route for `/intern/certificates` | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/learning.py` | New Learning Blueprint | Modular routes for `/api/learning/v2/*` session, turn, reviews, concept tree | Phase 23 | Low | `pytest tests/test_modularization.py` |
+| `routes/__init__.py` | Central Blueprint Registration Hub | Auto-registers all 10 domain blueprints onto core Flask app | Phase 23 | Low | Full pytest suite (281/281 passed) |
+| `tests/test_modularization.py` | New Monolith Modularization test suite | 18 test cases verifying all domain services and modular blueprints | Phase 23 | Zero | 18/18 passed in 4.91s |

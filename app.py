@@ -3503,7 +3503,9 @@ def _enforce_csrf():
         return None
     if app.config.get("TESTING") and not app.config.get("WTF_CSRF_ENABLED", True):
         return None
-    if request.path.startswith("/api/payment/razorpay/webhook") or request.path == "/attendance/ping" or request.endpoint in CSRF_EXEMPT_ENDPOINTS:
+    ep = request.endpoint or ""
+    ep_short = ep.split(".")[-1]
+    if request.path.startswith("/api/payment/razorpay/webhook") or request.path == "/attendance/ping" or ep in CSRF_EXEMPT_ENDPOINTS or ep_short in CSRF_EXEMPT_ENDPOINTS:
         return None
 
     # P0-7: Server-to-server CSRF exemption with strong auth
@@ -15886,8 +15888,8 @@ def _security_headers(resp):
     return resp
 
 
-from routes.ambassador import ambassador_bp
-app.register_blueprint(ambassador_bp)
+from routes import register_blueprints
+register_blueprints(app)
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=5000)  # nosec B104
