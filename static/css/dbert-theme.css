@@ -1516,7 +1516,7 @@ body.portal .lb-toggle.active{border-color:#000000; color:#000000 !important; ba
     .spotlight-card:hover{transform:translateY(-3px);box-shadow:0 12px 24px -6px rgba(15,23,42,0.08), 0 4px 8px -2px rgba(15,23,42,0.03);border-color:#CBD5E1;}
 
     /* TOPBAR (CLEAN WHITE NAVIGATION) */
-    body.home .topbar{position:sticky;top:41px;z-index:300;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #E2E8F0;transition:box-shadow .2s ease;}
+    body.home .topbar{position:sticky;top:0;z-index:300;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid #E2E8F0;transition:box-shadow .2s ease;}
     body.home .topbar.scrolled{box-shadow:0 4px 20px -2px rgba(15,23,42,0.08);}
     body.banner-hidden .topbar{top:0}
     body.home .topbar-inner{max-width:1200px;margin:0 auto;height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:16px;}

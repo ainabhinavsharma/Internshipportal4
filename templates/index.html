@@ -84,12 +84,7 @@
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
 
-  <div id="urgencyBanner" class="urgency-banner" role="region" aria-label="Announcement">
-    <div class="urgency-inner">
-      <div class="urgency-left"><i class="fas fa-bolt"></i><span><strong>DBERT Internship 2026</strong> — Applications open. Batches start every Monday. Limited seats per domain.</span></div>
-      <button class="urgency-close" type="button" aria-label="Dismiss" data-act-click="dismissBanner"><i class="fas fa-times"></i></button>
-    </div>
-  </div>
+
 
   <header class="topbar">
     <div class="topbar-inner">
@@ -561,8 +556,6 @@
   function setCookie(n,v,d){const e=new Date();e.setTime(e.getTime()+d*86400000);const sec=location.protocol==='https:'?';Secure':'';document.cookie=`${n}=${encodeURIComponent(v)};expires=${e.toUTCString()};path=/;SameSite=Lax${sec}`;}
   function getOrCreateVid(){let vid=getCookie('dbert_vid');if(!vid){vid='v_'+Math.random().toString(36).substr(2,9)+Date.now().toString(36);setCookie('dbert_vid',vid,90);}return vid;}
 
-  function dismissBanner(){const b=document.getElementById('urgencyBanner');if(b){b.style.display='none';document.body.classList.add('banner-hidden');}setCookie('dbert_banner','1',3);}
-  function initBanner(){if(getCookie('dbert_banner')==='1'){const b=document.getElementById('urgencyBanner');if(b){b.style.display='none';document.body.classList.add('banner-hidden');}}}
   function toggleMenu(){document.getElementById('navLinks').classList.toggle('open');}
   function closeMenu(){const n=document.getElementById('navLinks');if(n)n.classList.remove('open');}
   function scrollToId(id){closeMenu();const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
@@ -844,7 +837,7 @@
     document.getElementById('fp_email')?.addEventListener('keydown',e=>{if(e.key==='Enter')submitForgot();});
     document.getElementById('forgotOverlay')?.addEventListener('click',e=>{if(e.target.id==='forgotOverlay')closeForgotModal();});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForgotModal();hideAuthOverlay();}});
-    initBanner();initVisitTracking();handleHash();
+    initVisitTracking();handleHash();
   });
   </script>
 </body>
