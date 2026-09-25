@@ -717,6 +717,62 @@
 - Commit and push Session 17 deliverables to `origin/main` (`Internshipportal4`).
 - Proceed to Session 18 / Phase 26 (Data Integrity Dashboard & Health Analytics).
 
+## Session: 2026-09-25 (Session 18: Data Integrity Dashboard & Health Analytics)
+
+### Started
+- Time: 17:58
+- Trigger: User instructed to complete/proceed with Phase 26 (Data Integrity Dashboard & Health Analytics).
+- Target Remote: `https://github.com/ainabhinavsharma/Internshipportal4.git` (Remote `origin`, branch `main`).
+
+### Completed Work
+1. **Central Data Integrity & Health Analytics Service (`services/integrity_service.py`)**:
+   - `IntegrityService.get_platform_metrics(conn)`: Aggregates real-time counts across all 7 required entity clusters:
+     - `users`: Total intern accounts, approved/active companies, mentors, active staff accounts, and aggregate platform users.
+     - `applications`: Total applications and breakdown across all statuses (`Apply Pending`, `Under Review`, `Selected`, `Enrollment Pending`, `Accepted`, `Rejected`).
+     - `enrollments`: Total enrollments, verified payments, pending review, and rejected count.
+     - `payments`: Total payment records, verified volume in INR, and logged payment events.
+     - `active_interns`: Interns with accepted applications enrolled in active cohorts or coursework.
+     - `completed_interns`: Interns who have earned verified platform certificates.
+     - `certificates`: Total issued certificates.
+   - `IntegrityService.get_integrity_anomalies(conn)`: Implemented comprehensive multi-dimensional anomaly detection:
+     - `orphan_applications`: Applications missing valid email or domain.
+     - `orphan_enrollments`: Enrollments with missing or invalid `application_id`.
+     - `duplicate_active_applications`: Applicants with multiple concurrent in-flight applications.
+     - `impossible_states`: Contradictory states such as Rejected Application + Verified Enrollment, or Certificate issued without an Accepted application.
+     - `expired_live_listings`: Published job posts whose expiry date has passed or whose publishing company is unapproved or suspended.
+     - `failed_critical_jobs`: Dead-letter transactional outbox events (`status == 'DEAD_LETTER'` or `retry_count >= max_retries`).
+     - Health Score Calculation: Normalized score (0-100%) and tri-state status (`HEALTHY`, `WARNING`, `CRITICAL`).
+   - `IntegrityService.heal_anomalies(conn, action, dry_run=True)`: Safe self-healing framework:
+     - `expire_stale_listings`: Automatically updates expired published posts to `expired` status.
+     - `archive_dead_letters`: Automatically transitions dead-letter outbox events to `ARCHIVED`.
+     - Supports non-destructive dry-run mode for review before committing mutations.
+2. **Administration Routing & Remediation Endpoints (`routes/admin.py`)**:
+   - `GET /admin/integrity-dashboard`: Admin-only endpoint supporting dual format: returns JSON if requested by client (`Accept: application/json` or `?format=json`) or renders the HTML template.
+   - `POST /admin/integrity/heal`: Admin-only endpoint executing remediation actions with dry-run support.
+3. **Data Integrity & Health Analytics UI (`templates/admin_integrity_dashboard.html`)**:
+   - Header with live timestamp and navigation link back to Admin Center.
+   - Dynamic System Status Banner with color-coded health badge and 0-100% integrity score.
+   - Metric cards grid covering platform users, applications, enrollments, payments, active interns, and certificates.
+   - Dedicated anomaly inspection sections with severity badges (`CRITICAL`, `WARNING`, `INFO`).
+   - Action triggers for dry-run and execution remediation.
+4. **Automated Test Suite (`tests/test_integrity_dashboard.py`)**:
+   - 15 comprehensive tests covering entity metrics aggregation, 6 anomaly types, dry-run/execution remediation, dual JSON/HTML dashboard rendering, and multi-role RBAC enforcement.
+   - **Result: 15/15 passed in 5.71s**.
+5. **Full Regression Test Suite Pass**:
+   - Executed full test suite: **325 passed, 6 deselected in 94.28s (100% pass rate)**.
+   - Zero regressions observed across legacy application endpoints, modular domain services, database abstraction layer, or authentication suites.
+6. **Security & Data Safety Verifications**:
+   - `python scripts/verify_env_safety.py`: PASS (0 tracked secrets, 0 databases).
+   - `python scripts/audit_security.py`: ALL PASS (Bandit 0 issues, Pip-audit 0 CVEs, Secret verifier 0 issues).
+   - `python scripts/check_data_integrity.py`: PASS (0 critical issues).
+7. **Agent Documentation Updates**:
+   - Synchronized `.agent/CURRENT_PHASE.md`, `.agent/TASK_QUEUE.md`, `.agent/COMPLETED.md`, `.agent/FILES_CHANGED.md`, and `.agent/SESSION_LOG.md`.
+
+### Next Steps / Session 19 Transition
+- Commit and push Session 18 deliverables to `origin/main` (`Internshipportal4`).
+- Proceed to Session 19 / Phase 27: Production Release Preparation & Final UAT (§54 & §55).
+
+
 
 
 

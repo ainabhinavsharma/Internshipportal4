@@ -98,6 +98,11 @@
 | `DB-ABS-002` | 2026-09-25 | Thread-Safe Connection Pooling & Nested Savepoint Transaction Manager | Pool & tx tests | `services/database/connection_pool.py` | None | Liveness checks, bounded queue, atomic transactions with savepoints | Passed 100% |
 | `DB-ABS-003` | 2026-09-25 | SQLite-to-PostgreSQL Schema Translator & Verification Engine | Schema verifier | `services/database/schema_translator.py`, `scripts/verify_postgres_compatibility.py`, `docs/POSTGRES_SCHEMA.sql` | Generated PG DDL | 65 tables, 79 indexes, 100% compatibility verified | 100% verified |
 | `DB-ABS-004` | 2026-09-25 | Database Abstraction Regression & Verification Suite | Pytest (29 tests) & full suite (310 tests) | `tests/test_database_abstraction.py` | None | Full coverage of adapters, pooling, dialect conversions, and transactions | 29/29 + 310/310 passed |
+| `INT-DASH-001` | 2026-09-25 | Admin Data Integrity Dashboard Route & UI | Route & template tests | `routes/admin.py`, `templates/admin_integrity_dashboard.html` | None | Accessible dual JSON/HTML dashboard rendering metrics and anomalies | Passed 100% |
+| `INT-DASH-002` | 2026-09-25 | Automated Multi-Cluster Entity Metrics & Anomaly Detector | Service unit tests | `services/integrity_service.py` | None | Audits users, apps, enrollments, payments, interns, certs, and 6 anomaly types | Passed 100% |
+| `INT-DASH-003` | 2026-09-25 | Safe Anomaly Remediation & Self-Healing Action Framework | Remediation tests | `services/integrity_service.py`, `routes/admin.py` | None | Dry-run and execution support for expiring stale listings and archiving dead-letters | Passed 100% |
+| `INT-DASH-004` | 2026-09-25 | Platform Data Integrity Automated Test Suite | Pytest (15 tests) & full suite (325 tests) | `tests/test_integrity_dashboard.py`, `tests/conftest.py` | None | 100% pass across metrics, anomalies, self-healing, and admin RBAC | 15/15 + 325/325 passed |
+
 
 
 
