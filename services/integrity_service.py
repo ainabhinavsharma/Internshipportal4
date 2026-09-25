@@ -100,12 +100,19 @@ class IntegrityService:
 
         # Legacy payments table (if present)
         if IntegrityService._table_exists(conn, "payments"):
+            p_cols = [r["name"] if isinstance(r, dict) or hasattr(r, "keys") else r[1] for r in conn.execute("PRAGMA table_info(payments)").fetchall()]
             p_count = conn.execute("SELECT COUNT(*) FROM payments").fetchone()[0]
-            p_vol_row = conn.execute(
-                "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status IN ('Verified', 'Accepted', 'success')"
-            ).fetchone()
             total_payments += p_count
-            verified_volume += (p_vol_row[0] if p_vol_row else 0)
+            if "status" in p_cols:
+                p_vol_row = conn.execute(
+                    "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status IN ('Verified', 'Accepted', 'success')"
+                ).fetchone()
+                verified_volume += (p_vol_row[0] if p_vol_row else 0)
+            elif "verified" in p_cols:
+                p_vol_row = conn.execute(
+                    "SELECT COALESCE(SUM(amount), 0) FROM payments WHERE verified IN (1, '1', 'Verified')"
+                ).fetchone()
+                verified_volume += (p_vol_row[0] if p_vol_row else 0)
 
         # Enrollments payments
         enr_cols = [r["name"] for r in conn.execute("PRAGMA table_info(enrollments)").fetchall()]

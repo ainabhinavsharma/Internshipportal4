@@ -1,10 +1,10 @@
 # Gate 19 Release Readiness Report
 
 **Project**: DBERT Internship Portal (`Internshipportal4`)  
-**Execution Timestamp**: 2026-09-25 13:01:51 UTC  
+**Execution Timestamp**: 2026-09-25 14:35:01 UTC  
 **Target Remote**: `origin/main` (`https://github.com/ainabhinavsharma/Internshipportal4.git`)  
 **Overall Status**: **READY FOR PRODUCTION RELEASE**  
-**Total Verification Duration**: 69.38s  
+**Total Verification Duration**: 76.26s  
 
 ---
 
@@ -12,12 +12,12 @@
 
 | # | Verification Gate | Status | Duration | Diagnostic Notes |
 |---|---|---|---|---|
-| 1 | 1. Environment & Secrets Safety | **PASS** | 0.2s | 0 tracked secrets and 0 databases in git |
-| 2 | 2. Security Vulnerability Scan | **PASS** | 47.91s | Bandit 0 issues, Pip-audit 0 CVEs |
-| 3 | 3. Platform Data Integrity & Anomaly Scan | **PASS** | 0.1s | Integrity Score: 91.0%, 0 critical anomalies |
-| 4 | 4. PostgreSQL Staging Compatibility | **PASS** | 0.15s | Generated docs/POSTGRES_SCHEMA.sql with 0 dialect leaks |
-| 5 | 5. Backup Rehearsal & Integrity | **PASS** | 0.32s | WAL-safe pre-release backup created & PRAGMA integrity verified |
-| 6 | 6. Final UAT Test Suite (Gate 19) | **PASS** | 20.71s | All 11 UAT workflows passed (visitor to public cert verify) |
+| 1 | 1. Environment & Secrets Safety | **PASS** | 0.16s | 0 tracked secrets and 0 databases in git |
+| 2 | 2. Security Vulnerability Scan | **PASS** | 62.47s | Bandit 0 issues, Pip-audit 0 CVEs |
+| 3 | 3. Platform Data Integrity & Anomaly Scan | **PASS** | 0.09s | Integrity Score: 91.0%, 0 critical anomalies |
+| 4 | 4. PostgreSQL Staging Compatibility | **PASS** | 0.11s | Generated docs/POSTGRES_SCHEMA.sql with 0 dialect leaks |
+| 5 | 5. Backup Rehearsal & Integrity | **PASS** | 0.29s | WAL-safe pre-release backup created & PRAGMA integrity verified |
+| 6 | 6. Final UAT Test Suite (Gate 19) | **PASS** | 13.14s | All 11 UAT workflows passed (visitor to public cert verify) |
 
 ---
 
