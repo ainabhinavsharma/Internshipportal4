@@ -72,6 +72,12 @@
 | `templates/_app_shell.html` | Wrapped skip-link and burger button in `<header role="banner">` | Resolves Axe landmark containment requirement and guarantees skip navigation on all sidebar layouts (MOB-002) | Phase 18 | Low | Axe E2E passed (3/3) |
 | `templates/` (62 templates) | Added ARIA modal semantics (`role="dialog" aria-modal="true" aria-labelledby`), skip targets, and programmatic form labels | WCAG 2.1 AA compliance across signup, login, portal, courses, tasks, applications, payment, admin, and company workflows (MOB-002) | Phase 18 | Low | Full pytest suite (174/174 passed) |
 | `tests/test_mobile_accessibility.py` | New Mobile Responsiveness and Accessibility test suite | 18 test cases verifying viewport matrix, CSS responsiveness, contrast ratios, focus-visible rings, modal ARIA attributes, and workflow labels (MOB-003) | Phase 18 | Zero | 18/18 passed |
+| `services/performance_service.py` | New Performance Profiling and Benchmark service | Implements `QueryProfiler` with N+1 repetition detection, `benchmark_endpoint()` latency analyzer, `audit_static_assets()`, and SLA thresholds (PERF-001) | Phase 19 | Low | `pytest tests/test_performance_baseline.py` (16/16 passed) |
+| `scripts/benchmark_performance.py` | New standalone Performance Benchmarking CLI | Automates TTFB, min/avg/p95/max latency profiling, payload byte tracking, and static asset reporting (PERF-001) | Phase 19 | Zero | CLI execution verified |
+| `docs/PERFORMANCE_BASELINE.md` | New Performance Baseline report | Documents verified baseline latencies across 6 key endpoints and static asset weight analysis (PERF-001) | Phase 19 | Zero | Document inspection |
+| `app.py` | Added 8 performance indexes in `init_db()`, server-side pagination to admin routes, immutable static asset caching, and fast test password hashing | Optimizes N+1 query patterns, bounds payload sizes, eliminates static asset re-transfers, accelerates test suite 11x (PERF-002, PERF-003) | Phase 19 | Medium | Full pytest suite (190/190 passed in 21s) |
+| `tests/test_performance_baseline.py` | New Performance & Production Readiness test suite | 16 test cases covering SLA latency benchmarks, admin pagination, immutable caching headers, query planner index verification, and profiler utilities (PERF-001 - PERF-003) | Phase 19 | Zero | 16/16 passed |
+
 
 
 

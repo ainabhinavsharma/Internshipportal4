@@ -100,5 +100,8 @@
 - [x] MOB-001 Viewport matrix verification (360x800, 390x844, 412x915, 768x1024, 1366x768, 1920x1080) (`services/accessibility_service.py`, `scripts/audit_mobile_accessibility.py`)
 - [x] MOB-002 Critical workflow accessibility audit (keyboard focus visible, WCAG AA contrast, form labels, ARIA dialog roles, skip links across signup, login, portal, jobs, courses, tasks, payments, admin, company)
 - [x] MOB-003 Responsive layout and touch targets automated test suite (18/18 passed in `tests/test_mobile_accessibility.py`, 3/3 passed in `tests/e2e/test_phase9_a11y.py`)
+## P1 — Session 12: Performance & Production Readiness Audit (COMPLETE)
 
-
+- [x] PERF-001 Endpoint Latency SLA & Baseline Benchmarks (`services/performance_service.py`, `scripts/benchmark_performance.py`, `docs/PERFORMANCE_BASELINE.md`)
+- [x] PERF-002 Database Query Optimization & N+1 / Unbounded Query Profiling (`app.py` indexes, server-side pagination on `/admin/applications`, `/admin/enrollments`, `/admin/users`, query profiler)
+- [x] PERF-003 Static Asset Audit & High-Performance Caching Strategy (Static asset inventory, Cache-Control: immutable, 1-year max-age, test suite `tests/test_performance_baseline.py` 16/16 passed, test password hashing speedup)

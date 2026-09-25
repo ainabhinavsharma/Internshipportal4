@@ -60,6 +60,10 @@
 | `MOB-001` | 2026-09-25 | Viewport matrix definition & verification across 6 form factors (360px-1920px) | Viewport test matrix | `services/accessibility_service.py`, `scripts/audit_mobile_accessibility.py` | None | Guarantees responsive rendering from Galaxy S20 to Desktop FHD | Passed 100% |
 | `MOB-002` | 2026-09-25 | Critical workflow accessibility audit (focus-visible, contrast, labels, dialog ARIA, skip links) | Axe Core E2E & Template Auditor | `static/css/dbert-theme.css`, `static/js/creative-ui.js`, `templates/` (62 templates) | None | Full WCAG 2.1 AA compliance across all 9 critical workflows | 0 violations on Axe |
 | `MOB-003` | 2026-09-25 | Mobile responsiveness & accessibility automated test suite | Pytest (18 tests) & Axe E2E (3 tests) | `tests/test_mobile_accessibility.py`, `tests/e2e/test_phase9_a11y.py` | None | Verifies contrast, touch targets, landmarks, and ARIA modal semantics | 18/18 unit + 3/3 Axe passed |
+| `PERF-001` | 2026-09-25 | Endpoint Latency SLA & Baseline Benchmarks | Automated CLI benchmarks & pytest | `services/performance_service.py`, `scripts/benchmark_performance.py`, `docs/PERFORMANCE_BASELINE.md` | None | Strict SLA latency guarantees (<250ms public, <150ms API) | 100% within SLA |
+| `PERF-002` | 2026-09-25 | Database Query Optimization & N+1 / Unbounded Query Profiling | Query profiler & query planner tests | `app.py`, `services/performance_service.py` | Core indexes added | Server-side pagination & index-backed lookups prevent denial of service | 16/16 tests passed |
+| `PERF-003` | 2026-09-25 | Static Asset Audit & High-Performance Caching Strategy | Static auditor & test speedup | `app.py`, `tests/test_performance_baseline.py` | Cache-Control: immutable | 1-year browser caching for assets; test suite accelerated 11x (21s total) | 190/190 passed |
+
 
 
 

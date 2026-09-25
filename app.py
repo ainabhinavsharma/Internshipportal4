@@ -67,7 +67,8 @@ _FLASK_SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "")
 app.secret_key = _FLASK_SECRET_KEY or "digitalblinc2026secretkey"  # dev fallback; prod-guarded below
 app.config["UPLOAD_FOLDER"] = os.environ.get("UPLOAD_FOLDER", "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 6 * 1024 * 1024
-# NF1 (spec Â§5.1) â€” root cause of the deep-link logout.
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 31536000  # 1 year static asset caching
+# NF1 (spec §5.1) — root cause of the deep-link logout.
 # Flask's own session cookie used to be called "dbert_session", which is ALSO the
 # name the auth token was issued under historically. Any `session[...] = ...`
 # (e.g. the tutor deep-link stashing post_login_return_to) therefore rewrote the
@@ -580,6 +581,8 @@ def is_legacy_hash(stored_hash):
 def set_password_hash(plaintext):
     """Hash a password for storage with a salted KDF (new format).
     pbkdf2:sha256 is chosen for portability â€” it needs no OpenSSL scrypt."""
+    if os.environ.get("TESTING") == "true":
+        return generate_password_hash(plaintext or "", method="pbkdf2:sha256:1000")
     return generate_password_hash(plaintext or "", method="pbkdf2:sha256")
 
 
@@ -2263,6 +2266,15 @@ def init_db():
                 created_at TEXT DEFAULT (datetime('now','localtime'))
             );
             CREATE INDEX IF NOT EXISTS idx_signup_otps ON signup_otps(email, is_used, expires_at);
+
+            -- Phase 19: High-selectivity database performance indexes
+            CREATE INDEX IF NOT EXISTS idx_applications_status_created ON applications(status, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
+            CREATE INDEX IF NOT EXISTS idx_enrollments_status_created ON enrollments(payment_status, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_enrollments_email ON enrollments(email);
+            CREATE INDEX IF NOT EXISTS idx_attendance_intern_week ON attendance(intern_id, week_start DESC);
+            CREATE INDEX IF NOT EXISTS idx_course_day_quizzes_course ON course_day_quizzes(course_id, day_number);
+            CREATE INDEX IF NOT EXISTS idx_posts_expires ON posts(expires_at);
         """)
         # Seed UP0.2 default config & feature flags
         defaults = [
@@ -2406,6 +2418,7 @@ def init_db():
         # Attendance tracking and cross-subsystem email column migrations
         ensure_column(conn, "attendance", "email", "TEXT")
         ensure_column(conn, "course_enrollments", "email", "TEXT")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_course_enr_email ON course_enrollments(email)")
         ensure_column(conn, "coin_ledger_mirror", "email", "TEXT")
         ensure_column(conn, "task_submissions", "email", "TEXT")
         ensure_column(conn, "intern_certificates", "email", "TEXT")
@@ -13394,17 +13407,53 @@ def admin_applications():
     try:
         if not require_admin():
             return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+        limit = request.args.get("limit", default=None, type=int)
+        offset = request.args.get("offset", default=0, type=int)
+        page = request.args.get("page", default=None, type=int)
+        if page is not None and page > 0 and limit:
+            offset = (page - 1) * limit
+
         with get_db() as conn:
-            rows = conn.execute("SELECT * FROM applications ORDER BY created_at DESC").fetchall()
-            counts = conn.execute("SELECT email, COUNT(*) AS c FROM applications GROUP BY email").fetchall()
-        # Phase 9: sibling_count = OTHER applications by the same email (computed in Python, no N+1)
-        by_email = {(r["email"] or "").lower(): r["c"] for r in counts}
+            total_count = conn.execute("SELECT COUNT(*) AS c FROM applications").fetchone()["c"]
+            if limit is not None and limit > 0:
+                rows = conn.execute(
+                    "SELECT * FROM applications ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                    (limit, offset)
+                ).fetchall()
+            else:
+                rows = conn.execute("SELECT * FROM applications ORDER BY created_at DESC").fetchall()
+
+            # Phase 19: Compute sibling_count only for emails present in the current result set
+            emails_in_page = {r["email"].lower() for r in rows if r["email"]}
+            if emails_in_page:
+                placeholders = ",".join("?" for _ in emails_in_page)
+                counts = conn.execute(
+                    f"SELECT LOWER(email) AS em, COUNT(*) AS c FROM applications WHERE LOWER(email) IN ({placeholders}) GROUP BY LOWER(email)",
+                    list(emails_in_page)
+                ).fetchall()
+                by_email = {r["em"]: r["c"] for r in counts}
+            else:
+                by_email = {}
+
         apps = []
         for r in rows:
             d = row_to_dict(r)
             d["sibling_count"] = max(0, by_email.get((d["email"] or "").lower(), 1) - 1)
             apps.append(d)
-        return jsonify({"status": "success", "applications": apps})
+
+        current_page = (offset // limit + 1) if (limit and limit > 0) else 1
+        total_pages = ((total_count + limit - 1) // limit) if (limit and limit > 0) else 1
+
+        return jsonify({
+            "status": "success",
+            "applications": apps,
+            "total_count": total_count,
+            "limit": limit,
+            "offset": offset,
+            "page": current_page,
+            "total_pages": total_pages,
+        })
     except Exception as e:
         log_error("admin-applications", e)
         return jsonify({"status": "error", "message": "Error"}), 500
@@ -13416,6 +13465,12 @@ def admin_enrollments():
         if not require_admin():
             return jsonify({"status": "error", "message": "Unauthorized"}), 401
         sf = request.args.get("status", "all")
+        limit = request.args.get("limit", default=None, type=int)
+        offset = request.args.get("offset", default=0, type=int)
+        page = request.args.get("page", default=None, type=int)
+        if page is not None and page > 0 and limit:
+            offset = (page - 1) * limit
+
         with get_db() as conn:
             base_q = """
                 SELECT e.*,
@@ -13427,31 +13482,44 @@ def admin_enrollments():
                 FROM enrollments e
                 LEFT JOIN intern_accounts ia ON LOWER(ia.email) = LOWER(e.email) AND ia.is_active = 1
             """
+            where_sql = ""
             if sf == "pending":
-                rows = conn.execute(
-                    base_q + " WHERE e.payment_status='Pending Verification' ORDER BY e.created_at DESC"
-                ).fetchall()
+                where_sql = " WHERE e.payment_status='Pending Verification'"
             elif sf == "accepted":
-                rows = conn.execute(
-                    base_q + " WHERE e.payment_status='Accepted' ORDER BY e.created_at DESC"
-                ).fetchall()
+                where_sql = " WHERE e.payment_status='Accepted'"
             elif sf == "rejected":
+                where_sql = " WHERE e.payment_status='Rejected'"
+
+            total_filtered = conn.execute(f"SELECT COUNT(*) as c FROM enrollments e {where_sql}").fetchone()["c"]
+
+            if limit is not None and limit > 0:
                 rows = conn.execute(
-                    base_q + " WHERE e.payment_status='Rejected' ORDER BY e.created_at DESC"
+                    base_q + where_sql + " ORDER BY e.created_at DESC LIMIT ? OFFSET ?",
+                    (limit, offset)
                 ).fetchall()
             else:
                 rows = conn.execute(
-                    base_q + " ORDER BY e.created_at DESC"
+                    base_q + where_sql + " ORDER BY e.created_at DESC"
                 ).fetchall()
+
             total_apps     = conn.execute("SELECT COUNT(*) as c FROM applications").fetchone()["c"]
             pending_pay    = conn.execute("SELECT COUNT(*) as c FROM enrollments WHERE payment_status='Pending Verification'").fetchone()["c"]
             total_accepted = conn.execute("SELECT COUNT(*) as c FROM enrollments WHERE payment_status='Accepted'").fetchone()["c"]
             total_visits   = conn.execute("SELECT COUNT(*) as c FROM device_profiles").fetchone()["c"]
             free_count     = conn.execute("SELECT COUNT(*) as c FROM enrollments WHERE product='free_deposit' OR product IS NULL").fetchone()["c"]
             paid_count     = conn.execute("SELECT COUNT(*) as c FROM enrollments WHERE product='paid_program'").fetchone()["c"]
+
+        current_page = (offset // limit + 1) if (limit and limit > 0) else 1
+        total_pages = ((total_filtered + limit - 1) // limit) if (limit and limit > 0) else 1
+
         return jsonify({
             "status": "success",
             "enrollments": [row_to_dict(r) for r in rows],
+            "total_count": total_filtered,
+            "limit": limit,
+            "offset": offset,
+            "page": current_page,
+            "total_pages": total_pages,
             "stats": {
                 "total_applications": total_apps,
                 "pending_payments":   pending_pay,
@@ -13953,12 +14021,20 @@ def admin_users():
     try:
         if not require_admin():
             return jsonify({"status": "error", "message": "Unauthorized"}), 401
+
+        limit = request.args.get("limit", default=None, type=int)
+        offset = request.args.get("offset", default=0, type=int)
+        page = request.args.get("page", default=None, type=int)
+        if page is not None and page > 0 and limit:
+            offset = (page - 1) * limit
+
         # Phase 9: one row per PERSON (intern_accounts), with an application summary.
         rank = {STATUS_ACCEPTED: 7, STATUS_PAID_ENROLLED: 6, STATUS_ENROLLED: 6,
                 STATUS_ENROLLMENT_PENDING: 5, STATUS_SELECTED: 4, STATUS_UNDER_REVIEW: 3,
                 STATUS_ON_HOLD: 2, STATUS_APPLY_PENDING: 1, STATUS_REJECTED: 0}
         with get_db() as conn:
-            accounts = conn.execute("""
+            total_count = conn.execute("SELECT COUNT(*) AS c FROM intern_accounts").fetchone()["c"]
+            account_sql = """
                 SELECT ia.id, ia.name, ia.email, ia.phone, ia.city, ia.college, ia.course,
                        ia.domain, ia.semester,
                        ia.year_of_passing, ia.is_active, ia.password_set,
@@ -13972,8 +14048,23 @@ def admin_users():
                     GROUP BY email
                 ) dp ON LOWER(dp.email) = LOWER(ia.email)
                 ORDER BY ia.created_at DESC
-            """).fetchall()
-            apps = conn.execute("SELECT email, domain, status FROM applications").fetchall()
+            """
+            if limit is not None and limit > 0:
+                accounts = conn.execute(account_sql + " LIMIT ? OFFSET ?", (limit, offset)).fetchall()
+            else:
+                accounts = conn.execute(account_sql).fetchall()
+
+            # Phase 19: Only query applications for the emails present in this page
+            emails_in_page = {r["email"].lower() for r in accounts if r["email"]}
+            if emails_in_page:
+                placeholders = ",".join("?" for _ in emails_in_page)
+                apps = conn.execute(
+                    f"SELECT email, domain, status FROM applications WHERE LOWER(email) IN ({placeholders})",
+                    list(emails_in_page)
+                ).fetchall()
+            else:
+                apps = []
+
         by_email = {}
         for a in apps:
             by_email.setdefault((a["email"] or "").lower(), []).append(
@@ -13988,7 +14079,19 @@ def admin_users():
             d["furthest_status"] = max(mine, key=lambda m: rank.get(m["status"], -1))["status"] if mine else ""
             d["multi_flag"] = len(mine) > 1
             users.append(d)
-        return jsonify({"status": "success", "users": users})
+
+        current_page = (offset // limit + 1) if (limit and limit > 0) else 1
+        total_pages = ((total_count + limit - 1) // limit) if (limit and limit > 0) else 1
+
+        return jsonify({
+            "status": "success",
+            "users": users,
+            "total_count": total_count,
+            "limit": limit,
+            "offset": offset,
+            "page": current_page,
+            "total_pages": total_pages,
+        })
     except Exception as e:
         log_error("admin-users", e)
         return jsonify({"status": "error", "message": "Error"}), 500
@@ -15447,6 +15550,10 @@ def _security_headers(resp):
     if any(request.path.startswith(p) for p in ("/portal", "/admin", "/staff", "/company", "/mentor", "/intern")):
         resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         resp.headers["Pragma"] = "no-cache"
+
+    # Phase 19: Long-lived caching for static assets (CSS, JS, fonts, images)
+    elif request.path.startswith("/static/"):
+        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
 
     return resp
 
