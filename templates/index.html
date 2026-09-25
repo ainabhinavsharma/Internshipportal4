@@ -838,6 +838,13 @@
     document.getElementById('forgotOverlay')?.addEventListener('click',e=>{if(e.target.id==='forgotOverlay')closeForgotModal();});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeForgotModal();hideAuthOverlay();}});
     initVisitTracking();handleHash();
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          showToast({{ msg|tojson }}, {{ 'error' if cat in ['error','danger'] else ('success' if cat=='success' else 'info')|tojson }});
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
   });
   </script>
 </body>

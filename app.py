@@ -6663,6 +6663,17 @@ def staff_task_decision(submission_id):
 @app.route("/tasks", methods=["GET"])
 def tasks_list():
     intern = current_intern()
+    staff = current_staff()
+    mentor = current_mentor()
+    company = current_company()
+    user = intern or staff or mentor or company
+    if not user:
+        if request.is_json or request.headers.get("Accept") == "application/json" or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"status": "error", "message": "Authentication required. Please sign in or sign up to view tasks."}), 401
+        session["next"] = "/tasks"
+        flash("Please sign in or sign up to view tasks.", "info")
+        return redirect("/#signin")
+
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 20))
     with get_db() as conn:
@@ -6705,6 +6716,17 @@ def tasks_list():
 @app.route("/tasks/<int:task_id>", methods=["GET"])
 def task_detail(task_id):
     intern = current_intern()
+    staff = current_staff()
+    mentor = current_mentor()
+    company = current_company()
+    user = intern or staff or mentor or company
+    if not user:
+        if request.is_json or request.headers.get("Accept") == "application/json" or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"status": "error", "message": "Authentication required. Please sign in or sign up to view task details."}), 401
+        session["next"] = f"/tasks/{task_id}"
+        flash("Please sign in or sign up to view task details.", "info")
+        return redirect("/#signin")
+
     with get_db() as conn:
         task = conn.execute("SELECT * FROM tasks WHERE id = ? AND is_active = 1", (task_id,)).fetchone()
         if not task:
