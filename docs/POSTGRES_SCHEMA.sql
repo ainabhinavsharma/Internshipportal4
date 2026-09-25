@@ -312,6 +312,7 @@ CREATE TABLE IF NOT EXISTS courses (
     author_type TEXT DEFAULT 'admin',
     author_id INTEGER,
     requires_project INTEGER DEFAULT 0,
+    program TEXT DEFAULT 'fellowship',
     banner_gradient TEXT DEFAULT 'linear-gradient(135deg, #8B5CF6, #3B82F6)',
     updated_at TEXT DEFAULT ''
 );
@@ -565,6 +566,7 @@ CREATE TABLE IF NOT EXISTS intern_accounts (
     upi_id_encrypted TEXT,
     email_verified INTEGER DEFAULT 0,
     account_status TEXT,
+    program TEXT DEFAULT 'fellowship',
     visitor_id TEXT DEFAULT NULL,
     FOREIGN KEY(application_id) REFERENCES applications(id)
 );

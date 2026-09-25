@@ -37,7 +37,8 @@ def cohort_enroll(cohort_id):
             if already:
                 return jsonify({"status": "error", "message": "Already enrolled in this cohort"}), 400
 
-            max_cap = int(cohort["max_capacity"] or 0)
+            cap_val = cohort["capacity"] if "capacity" in cohort.keys() else cohort["max_capacity"] if "max_capacity" in cohort.keys() else 0
+            max_cap = int(cap_val or 0)
             cursor = conn.execute(
                 """
                 INSERT INTO cohort_enrollments (cohort_id, intern_id)
@@ -82,3 +83,18 @@ def attendance_ping():
     except Exception as e:
         log_error("attendance-ping", e)
         return jsonify({"status": "error", "message": "Attendance logging failed"}), 500
+
+
+@enrollment_bp.route("/launchpad", methods=["GET"])
+def launchpad_checkout():
+    """Public landing page for DBERT Launchpad (2-month course track + AI tutor)."""
+    from flask import render_template
+    return render_template("program.html", program_name="launchpad", title="DBERT Launchpad Program")
+
+
+@enrollment_bp.route("/accelerate", methods=["GET"])
+def accelerate_checkout():
+    """Public landing page for DBERT Accelerate (Live Project Sprints)."""
+    from flask import render_template
+    return render_template("program.html", program_name="accelerate", title="DBERT Accelerate Sprints")
+
