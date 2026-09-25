@@ -107,23 +107,23 @@
     {% if posts %}
     <div id="t2FilterBar" style="background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin:16px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
       <div style="flex:1;min-width:180px;">
-        <label style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Search</label>
+        <label for="t2Search" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Search</label>
         <input id="t2Search" type="text" placeholder="Title or skill…" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
       </div>
       <div style="min-width:130px;">
-        <label style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Work mode</label>
+        <label for="t2WorkMode" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Work mode</label>
         <select id="t2WorkMode" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
           <option value="">All</option>
         </select>
       </div>
       <div style="min-width:130px;">
-        <label style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Duration</label>
+        <label for="t2Duration" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Duration</label>
         <select id="t2Duration" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
           <option value="">All</option>
         </select>
       </div>
       <div style="min-width:150px;">
-        <label style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Min stipend (₹/mo)</label>
+        <label for="t2Stipend" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Min stipend (₹/mo)</label>
         <select id="t2Stipend" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
           <option value="0">Any</option>
           <option value="5000">₹5,000+</option>
@@ -132,7 +132,7 @@
         </select>
       </div>
       <div style="min-width:130px;">
-        <label style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Posted</label>
+        <label for="t2Freshness" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Posted</label>
         <select id="t2Freshness" style="width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
           <option value="">Anytime</option>
           <option value="1">Today</option>
@@ -142,6 +142,7 @@
       </div>
       <button id="t2Clear" type="button" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--tx-muted);font-size:13px;cursor:pointer;white-space:nowrap;">Clear filters</button>
     </div>
+
     <div id="t2ResultCount" style="color:var(--tx-muted);font-size:13px;margin-bottom:8px;"></div>
     {% endif %}
 

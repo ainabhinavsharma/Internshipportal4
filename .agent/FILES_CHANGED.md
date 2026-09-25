@@ -65,6 +65,14 @@
 | `templates/post_listings.html` | Added empty-state recovery links | Ensures zero-result search or empty domain filters always present clickable paths to browse all jobs/internships or return home (UX-001) | Phase 17 | Low | Visual & test client checks |
 | `app.py` | Upgraded `_render_error()` with structured context; added `@app.errorhandler` for 400, 401, 403, 404, 410, 500; replaced raw plain-text 500s | Eliminates blank/raw error dead ends and provides structured JSON for API error responses (UX-002) | Phase 17 | Medium | Full pytest suite (156/156 passed) |
 | `tests/test_ux_dead_ends.py` | New UX Dead-End and Error Resolution test suite | 13 test cases covering 400/401/403/404/410/500 handlers, JSON schemas, unauthenticated dashboard redirects, listings empty recovery links, and certificate error guidance (UX-003) | Phase 17 | Zero | 13/13 passed |
+| `services/accessibility_service.py` | New Accessibility and Responsiveness service | WCAG 2.1 relative luminance and contrast calculations, 6-viewport matrix, 9-workflow template parsing, and CSS audit engine (MOB-001) | Phase 18 | Low | `pytest tests/test_mobile_accessibility.py` (18/18 passed) |
+| `scripts/audit_mobile_accessibility.py` | New Mobile & Accessibility CLI audit scanner | Standalone CLI verifying viewports, modal ARIA roles, touch targets, and form labels across all 62 templates (MOB-001) | Phase 18 | Zero | Full audit execution (0 violations) |
+| `static/css/dbert-theme.css` | Enhanced mobile styles, touch targets, and contrast | Adjusted `.card-banner .badge.b-green` to `#15803d` (5.02:1 contrast), added 44px min touch target sizing, focus-visible ring (MOB-002) | Phase 18 | Low | Full pytest suite & Axe E2E |
+| `static/js/creative-ui.js` | Added universal modal accessibility handler | Global `Escape` keyboard dismissal and backdrop click handler across all application modals (MOB-002) | Phase 18 | Low | Full pytest suite & Axe E2E |
+| `templates/_app_shell.html` | Wrapped skip-link and burger button in `<header role="banner">` | Resolves Axe landmark containment requirement and guarantees skip navigation on all sidebar layouts (MOB-002) | Phase 18 | Low | Axe E2E passed (3/3) |
+| `templates/` (62 templates) | Added ARIA modal semantics (`role="dialog" aria-modal="true" aria-labelledby`), skip targets, and programmatic form labels | WCAG 2.1 AA compliance across signup, login, portal, courses, tasks, applications, payment, admin, and company workflows (MOB-002) | Phase 18 | Low | Full pytest suite (174/174 passed) |
+| `tests/test_mobile_accessibility.py` | New Mobile Responsiveness and Accessibility test suite | 18 test cases verifying viewport matrix, CSS responsiveness, contrast ratios, focus-visible rings, modal ARIA attributes, and workflow labels (MOB-003) | Phase 18 | Zero | 18/18 passed |
+
 
 
 

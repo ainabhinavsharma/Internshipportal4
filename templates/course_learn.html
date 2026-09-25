@@ -42,12 +42,13 @@
     {% endif %}
 
     <!-- Gemini key test & save modal -->
-    <div id="geminiModal" class="modal">
+    <div id="geminiModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="geminiModalTitle">
         <div class="modal-box" style="max-width:480px">
             <div class="row-between mb-16">
-                <h3 style="margin:0">🔑 Connect Google Gemini key</h3>
-                <button data-act-click="closeGeminiModal" class="t-muted" style="font-size:18px" aria-label="Close">✕</button>
+                <h3 id="geminiModalTitle" style="margin:0">🔑 Connect Google Gemini key</h3>
+                <button data-act-click="closeGeminiModal" class="t-muted" style="font-size:18px" aria-label="Close dialog">✕</button>
             </div>
+
             <p class="t-sm t-muted mb-16">
                 Enter your Google Gemini API key to unlock unthrottled AI tutoring. We test available
                 models live against Google's API before saving.
@@ -72,7 +73,7 @@
                     </div>
                 </div>
             </form>
-            <div id="modalStatusMsg" class="alert" style="display:none"></div>
+            <div id="modalStatusMsg" class="alert" role="alert" style="display:none"></div>
             <div class="modal-foot">
                 <button data-act-click="closeGeminiModal" class="btn btn-ghost btn-sm">Cancel</button>
                 <button id="btnSaveGeminiKey" data-act-click="testAndSaveGeminiKey" class="btn btn-ai btn-sm">

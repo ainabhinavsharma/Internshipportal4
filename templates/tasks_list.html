@@ -91,8 +91,9 @@
 </div>
 
 <!-- Submission modal -->
-<div class="modal" id="taskModal">
+<div class="modal" id="taskModal" role="dialog" aria-modal="true" aria-labelledby="modalTaskTitle">
   <div class="modal-box">
+
     <h3 id="modalTaskTitle">Submit task</h3>
     <div id="modalInstructions" class="t-sm t-muted mb-24"
          style="background:var(--bg-inset);padding:14px;border-radius:var(--r-sm);line-height:1.55">
@@ -129,7 +130,7 @@
       </div>
     </form>
 
-    <div id="modalMsg" class="t-sm mt-16" style="display:none"></div>
+    <div id="modalMsg" class="t-sm mt-16" role="alert" style="display:none"></div>
   </div>
 </div>
 

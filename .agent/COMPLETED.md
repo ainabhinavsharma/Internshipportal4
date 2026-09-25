@@ -57,6 +57,10 @@
 | `UX-001` | 2026-09-25 | Centralized UX audit service & empty-state recovery links | Unit tests & template checks | `services/ux_audit_service.py`, `templates/post_listings.html` | None | Eliminates user dead-ends with clickable recovery CTAs | 13/13 tests passed |
 | `UX-002` | 2026-09-25 | Comprehensive error handler audit (400, 401, 403, 404, 410, 500) answering what/why/action | Flask errorhandler & test client | `app.py`, `templates/error.html` | None | Replaces raw 500 plain text with structured error pages & JSON schemas | Passed 100% |
 | `UX-003` | 2026-09-25 | Dead-end detection test suite covering status codes, JSON schemas, redirects, and listings | Pytest UX suite (13 tests) | `tests/test_ux_dead_ends.py` | None | Verifies error recovery paths across all failure scenarios | 13/13 tests passed |
+| `MOB-001` | 2026-09-25 | Viewport matrix definition & verification across 6 form factors (360px-1920px) | Viewport test matrix | `services/accessibility_service.py`, `scripts/audit_mobile_accessibility.py` | None | Guarantees responsive rendering from Galaxy S20 to Desktop FHD | Passed 100% |
+| `MOB-002` | 2026-09-25 | Critical workflow accessibility audit (focus-visible, contrast, labels, dialog ARIA, skip links) | Axe Core E2E & Template Auditor | `static/css/dbert-theme.css`, `static/js/creative-ui.js`, `templates/` (62 templates) | None | Full WCAG 2.1 AA compliance across all 9 critical workflows | 0 violations on Axe |
+| `MOB-003` | 2026-09-25 | Mobile responsiveness & accessibility automated test suite | Pytest (18 tests) & Axe E2E (3 tests) | `tests/test_mobile_accessibility.py`, `tests/e2e/test_phase9_a11y.py` | None | Verifies contrast, touch targets, landmarks, and ARIA modal semantics | 18/18 unit + 3/3 Axe passed |
+
 
 
 

@@ -81,6 +81,8 @@
   </script>
 </head>
 <body class="home">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
 
   <div id="urgencyBanner" class="urgency-banner" role="region" aria-label="Announcement">
     <div class="urgency-inner">
@@ -116,7 +118,8 @@
 
   <main id="marketingContent">
     <!-- HERO (IMAGE 2) -->
-    <section class="hero">
+    <section class="hero" id="main-content">
+
       <div class="hero-content">
         <div class="hero-badge"><span class="badge-dot"></span> New Opportunities Every Week</div>
         <h1>Launch your career with the<br/><span class="highlight">DBERT Internship</span></h1>
@@ -419,10 +422,11 @@
                 <div class="form-group"><label class="field-label" for="su_password">Password *</label><div class="pw-field"><input type="password" id="su_password" class="field-input" placeholder="At least 8 characters" autocomplete="new-password"/><button class="pw-toggle" type="button" data-act-click="togglePw" data-arg-click='["su_password", "$el"]' aria-label="Show/hide"><i class="fa fa-eye"></i></button></div></div>
                 <div class="form-group"><label class="field-label" for="su_confirm">Confirm Password *</label><div class="pw-field"><input type="password" id="su_confirm" class="field-input" placeholder="Re-enter password" autocomplete="new-password"/><button class="pw-toggle" type="button" data-act-click="togglePw" data-arg-click='["su_confirm", "$el"]' aria-label="Show/hide"><i class="fa fa-eye"></i></button></div></div>
               </div>
-              <label class="su-chk"><input type="checkbox" id="su_terms"/><span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>. <span style="color:#ff6b6b;">*</span></span></label>
-              <label class="su-chk"><input type="checkbox" id="su_newsletter"/><span>Send me internship tips, opportunities &amp; updates by email <span style="color:#94A3B8;">(optional)</span>.</span></label>
+              <label class="su-chk"><input type="checkbox" id="su_terms" aria-label="I agree to the Terms &amp; Conditions and Privacy Policy"/><span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>. <span style="color:#ff6b6b;">*</span></span></label>
+              <label class="su-chk"><input type="checkbox" id="su_newsletter" aria-label="Send me internship tips, opportunities &amp; updates by email"/><span>Send me internship tips, opportunities &amp; updates by email <span style="color:#94A3B8;">(optional)</span>.</span></label>
               <!-- 8.4 bot defenses: off-screen honeypot (must stay empty) + signed timing token -->
-              <input type="text" name="company_website" id="su_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;"/>
+              <input type="text" name="company_website" id="su_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" aria-label="Leave this field blank" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;"/>
+
               <input type="hidden" id="su_ts"/>
               <button class="btn-auth-submit" id="suBtn1" data-act-click="suNext1"><span class="btn-label"><i class="fas fa-user-plus"></i> &nbsp;Create account &amp; continue</span><span class="btn-spinner"></span></button>
               <p style="text-align:center;margin-top:8px;margin-bottom:0;font-size:11px;color:#64748B;">Takes 2 minutes &middot; Offer letter within 2 hours of enrollment</p>
@@ -543,7 +547,8 @@
 
       <div id="forgotFormArea">
         <div class="form-group"><label class="field-label" for="fp_email" style="color:#FFFFFF;font-size:11px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:6px;display:block;">Email</label><input type="email" id="fp_email" class="field-input" placeholder="you@example.com" autocomplete="email"/></div>
-        <input type="text" name="company_website" id="fp_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;"/>
+        <input type="text" name="company_website" id="fp_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" aria-label="Leave this field blank" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;"/>
+
         <button class="btn-auth-submit" id="forgotBtn" data-act-click="submitForgot" style="margin-top:14px;"><span class="btn-label"><i class="fas fa-paper-plane"></i> &nbsp;Send Reset Link</span><span class="btn-spinner"></span></button>
       </div>
     </div>

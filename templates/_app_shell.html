@@ -35,9 +35,13 @@
    `active_page` comes from the route's render_template call, unchanged.
    ========================================================================== #}
 
-<button class="app-burger" id="appBurger" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="appSidebar">
-  <i class="fa-solid fa-bars"></i>
-</button>
+<header role="banner">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <button class="app-burger" id="appBurger" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="appSidebar">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+</header>
+
 
 <aside class="sidebar" id="appSidebar">
   <div class="brand">

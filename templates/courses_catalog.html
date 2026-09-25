@@ -8,7 +8,7 @@
 {% set active_page = 'courses' %}
 {% include '_intern_sidebar.html' %}
 
-<main class="main">
+<main class="main" id="main-content" tabindex="-1">
   <div class="content content-wide">
 
     <div class="page-head">
@@ -75,7 +75,7 @@
 
           <div class="card-body">
             <div>
-              <h3 style="font-size:17px;margin-bottom:8px">{{ course.title }}</h3>
+              <h2 style="font-size:17px;margin-bottom:8px">{{ course.title }}</h2>
               <div class="course-meta mb-16">
                 <span><i class="fa-regular fa-clock"></i> {{ course.estimated_hours or 10 }} hours</span>
                 <span><i class="fa-regular fa-calendar"></i> {{ course.total_days or 7 }} days</span>

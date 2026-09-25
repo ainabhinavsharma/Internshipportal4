@@ -151,9 +151,10 @@ hr{border:none; border-top:1px solid var(--border); margin:20px 0}
 ::-webkit-scrollbar-thumb{background:var(--border-strong); border-radius:var(--r-pill)}
 ::selection{background:var(--gold-glow); color:var(--tx-head)}
 
-/* Keyboard focus — visible everywhere, never suppressed. */
-:focus-visible{outline:2px solid var(--gold); outline-offset:2px; border-radius:var(--r-sm)}
+/* Keyboard focus — visible everywhere, never suppressed (WCAG 2.1 AA compliant) */
+:focus-visible{outline:2px solid var(--gold); outline-offset:2px; box-shadow:0 0 0 3px var(--gold-glow); border-radius:var(--r-sm)}
 :focus:not(:focus-visible){outline:none}
+
 
 /* Screen-reader-only text + skip link */
 .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
@@ -525,8 +526,9 @@ hr{border:none; border-top:1px solid var(--border); margin:20px 0}
 .card-banner{height:120px; background:var(--gold-grad); padding:16px;
   display:flex; flex-direction:column; justify-content:space-between; position:relative}
 .card-banner .badge{background:rgba(0,0,0,.42); color:var(--tx-head)}
-.card-banner .badge.b-green{background:var(--green); color:var(--tx-ink)}
+.card-banner .badge.b-green{background:#15803d; color:#ffffff; font-weight:700}
 .course-card .card-body{padding:20px; flex:1; display:flex; flex-direction:column;
+
   justify-content:space-between; gap:14px}
 .course-meta{display:flex; align-items:center; gap:16px; font-size:12.5px; color:var(--tx-muted)}
 .card-foot{margin-top:auto; display:flex; align-items:center; justify-content:space-between;
@@ -1010,11 +1012,17 @@ body.doc a{color:var(--doc-accent)}
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
   }
-  .app-burger, .m-burger {
-    min-width: 42px;
-    min-height: 42px;
+  /* Mobile touch target minimum sizing (WCAG 2.1 AA requirement: >= 44x44px) */
+  .app-burger, .m-burger, .btn, .btn-primary, .btn-secondary, .btn-ghost, .tag-btn {
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+  .nav-item {
+    min-height: 44px;
   }
 }
+
 @media(max-width:640px){
   .coin-cards{grid-template-columns:1fr}
   .ref-funnel{grid-template-columns:1fr}

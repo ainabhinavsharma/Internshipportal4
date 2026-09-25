@@ -37,26 +37,27 @@
     {% if applicants %}
     <div class="req-strip" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
       <div style="flex:1;min-width:180px;">
-        <div style="font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Search</div>
+        <label for="t7Search" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Search</label>
         <input id="t7Search" type="text" placeholder="Name or email…" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
       </div>
       <div style="min-width:150px;">
-        <div style="font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Status</div>
+        <label for="t7Status" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Status</label>
         <select id="t7Status" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
           <option value="">All Statuses</option>
           {% for s in statuses %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
         </select>
       </div>
       <div style="min-width:130px;">
-        <div style="font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Applied from</div>
+        <label for="t7From" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Applied from</label>
         <input id="t7From" type="date" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
       </div>
       <div style="min-width:130px;">
-        <div style="font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Applied to</div>
+        <label for="t7To" style="display:block;font-size:11px;color:var(--tx-muted);margin-bottom:4px;">Applied to</label>
         <input id="t7To" type="date" style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#fff;font-size:13px;">
       </div>
       <button id="t7Clear" type="button" class="btn ghost" style="white-space:nowrap;">Clear filters</button>
     </div>
+
     <div id="t7ResultCount" style="color:var(--tx-muted);font-size:13px;margin:4px 0 14px;"></div>
     {% endif %}
 
@@ -98,7 +99,7 @@
       {% endif %}
 
       <div class="row-actions">
-        <select data-act-change="onStatusChange" data-arg-change='[{{ a.id|tojson }}, "$value"]'>
+        <select aria-label="Update applicant status" data-act-change="onStatusChange" data-arg-change='[{{ a.id|tojson }}, "$value"]'>
           {% for s in statuses %}<option value="{{ s }}" {% if a.status==s %}selected{% endif %}>{{ s }}</option>{% endfor %}
         </select>
         <button class="btn ghost" data-act-click="messageApplicant" data-arg-click='[{{ a.intern_id|tojson }}]'><i class="fas fa-comment"></i> Message</button>
@@ -111,7 +112,7 @@
         <div>
           {% for c in required_certs %}
           <label class="ck">
-            <input type="checkbox" value="{{ c.course_id }}" data-title="{{ c.title }}"
+            <input type="checkbox" value="{{ c.course_id }}" data-title="{{ c.title }}" aria-label="{{ c.title }}"
               {% if c.course_id in a.missing_certs|map(attribute='course_id')|list %}checked{% endif %}>
             {{ c.title }}
           </label>
@@ -119,7 +120,8 @@
           <div style="color:var(--tx-muted);font-size:12.5px;">This post lists no certifications — add some on the post to require them.</div>
           {% endfor %}
         </div>
-        <textarea placeholder="Optional note to the applicant…">{{ a.decision_note or '' }}</textarea>
+        <textarea aria-label="Optional note to the applicant" placeholder="Optional note to the applicant…">{{ a.decision_note or '' }}</textarea>
+
         <div style="margin-top:10px;display:flex;gap:8px;">
           <button class="btn" data-act-click="sendCertGate" data-arg-click='[{{ a.id|tojson }}]'><i class="fas fa-paper-plane"></i> Select &amp; notify</button>
           <button class="btn ghost" data-act-click="closeGate" data-arg-click='[{{ a.id|tojson }}]'>Cancel</button>

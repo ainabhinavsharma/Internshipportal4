@@ -175,6 +175,63 @@
   }
 
   // ---------------------------------------------------------------------------
+  // 6. Universal Modal Accessibility & Keyboard Controller (Phase 18)
+  // ---------------------------------------------------------------------------
+  function initUniversalModalAccessibility() {
+    function getOpenModals() {
+      const candidates = document.querySelectorAll(
+        '.modal, .modal-overlay, [role="dialog"], #wizardOverlay, #applyModal, #taskModal, #createTaskModal, #geminiModal, #resultModal'
+      );
+      const openModals = [];
+      candidates.forEach((el) => {
+        if (!el) return;
+        const style = window.getComputedStyle(el);
+        const isVisible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0' && !el.classList.contains('hidden');
+        if (isVisible && (el.classList.contains('open') || el.classList.contains('active') || style.position === 'fixed' || style.position === 'absolute')) {
+          openModals.push(el);
+        }
+      });
+      return openModals;
+    }
+
+    function dismissModal(modal) {
+      if (!modal) return;
+      // Try dedicated close buttons first
+      const closeBtn = modal.querySelector('.modal-close, [data-act-click*="close"], [data-act-click*="Dismiss"], [aria-label="Close"]');
+      if (closeBtn && typeof closeBtn.click === 'function') {
+        closeBtn.click();
+        return;
+      }
+      // Fallback: remove active/open classes and hide
+      modal.classList.remove('open', 'active');
+      if (modal.id === 'wizardOverlay') {
+        modal.classList.add('hidden');
+      } else {
+        modal.style.display = 'none';
+      }
+    }
+
+    // Escape key listener for all dialogs
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const openList = getOpenModals();
+        if (openList.length > 0) {
+          e.preventDefault();
+          // Dismiss the top-most modal
+          dismissModal(openList[openList.length - 1]);
+        }
+      }
+    });
+
+    // Backdrop click dismiss for modal overlays
+    document.addEventListener('click', (e) => {
+      if (e.target && (e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal') || e.target.classList.contains('wizard-overlay'))) {
+        dismissModal(e.target);
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------------
   // Boot
   // ---------------------------------------------------------------------------
   function boot() {
@@ -183,6 +240,7 @@
     initMagneticButtons();
     initGsapAnimations();
     initNavbarScroll();
+    initUniversalModalAccessibility();
   }
 
   if (document.readyState === 'loading') {
@@ -191,3 +249,4 @@
     boot();
   }
 })();
+

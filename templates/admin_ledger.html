@@ -19,7 +19,7 @@
       <a href="/admin/ledger?kind=ad" class="{{ 'active' if kind == 'ad' else '' }}">Ad</a>
       <form method="get" action="/admin/ledger">
         {% if kind %}<input type="hidden" name="kind" value="{{ kind }}">{% endif %}
-        <input name="intern_id" placeholder="intern id" value="{{ intern_filter or '' }}">
+        <input name="intern_id" id="intern_id" placeholder="intern id" aria-label="Filter by Intern ID" value="{{ intern_filter or '' }}">
         <button type="submit">Filter</button>
       </form>
     </div>

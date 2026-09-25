@@ -386,6 +386,61 @@
 ### Next Steps / Session 11 Transition
 - Session 11: Phase 18 (Mobile & Accessibility Responsive Audit: MOB-001 - MOB-003).
 
+---
+
+## Session 11: Mobile & Accessibility Responsive Audit
+- Date: 2026-09-25
+- Time: 11:46
+- Trigger: User approved proceeding into Session 11.
+- Focus: Phase 18 (Mobile & Accessibility Responsive Audit: MOB-001 - MOB-003).
+
+### Completed Work
+1. **Accessibility Service & Responsive Viewport Engine (`services/accessibility_service.py`)**:
+   - Implemented WCAG 2.1 relative luminance and contrast ratio algorithms (`calculate_relative_luminance`, `calculate_contrast_ratio`, `meets_wcag_aa`, `meets_wcag_aaa`).
+   - Defined standard 6-viewport matrix required by Master Plan:
+     - `360x800` (Galaxy S20 / Android Small)
+     - `390x844` (iPhone 12/13/14 Standard)
+     - `412x915` (Pixel 7 Large)
+     - `768x1024` (iPad / Tablet Portrait)
+     - `1366x768` (Standard Laptop)
+     - `1920x1080` (Desktop Full HD)
+   - Defined 9 critical workflows: `signup`, `login`, `portal`, `courses`, `tasks`, `applications`, `payment`, `admin`, `company`.
+   - Built HTML parser auditor `audit_html_accessibility()` and CSS responsive auditor `audit_css_responsiveness()`.
+2. **CLI Audit Scanner (`scripts/audit_mobile_accessibility.py`)**:
+   - Standalone CLI checking all 62 templates and stylesheet against viewport meta tags, unlabeled form controls, modal ARIA roles, skip-links, and contrast.
+   - Initial run detected 19 unlabeled inputs across admin, portal, and ledger templates.
+   - Refactored all detected inputs with explicit `<label for="...">` and `aria-label="..."`. Subsequent run confirmed 0 unlabeled inputs across all 9 critical workflows.
+3. **Style & Script Hardening (`static/css/dbert-theme.css`, `static/js/creative-ui.js`, `templates/`)**:
+   - Elevated `.card-banner .badge.b-green` background to `#15803d` for 5.02:1 contrast against white text (exceeding WCAG AA >= 4.5:1).
+   - Elevated `:focus-visible` with high-contrast ring (`outline: 2px solid var(--gold); outline-offset: 2px; box-shadow: 0 0 0 3px var(--gold-glow);`).
+   - Added mobile touch target sizing rule in `@media(max-width:768px)` enforcing `min-width: 44px; min-height: 44px` on buttons, nav items, and controls.
+   - Added iOS auto-zoom 16px font guard on inputs.
+   - Added `initUniversalModalAccessibility()` in `creative-ui.js` providing global `Escape` key listeners to dismiss any active modal and backdrop click dismissal.
+   - Hardened all modal dialog containers with `role="dialog"`, `aria-modal="true"`, and `aria-labelledby`.
+   - Wrapped skip-link and mobile burger toggle in `<header role="banner">` in `_app_shell.html` ensuring all page content is contained by landmarks.
+   - Added focusable `<main id="main-content" tabindex="-1">` to `courses_catalog.html`, `admin.html`, and `portal.html`.
+4. **Phase 18 Automated Test Suite (`tests/test_mobile_accessibility.py`)**:
+   - Authored 18 automated tests:
+     - `TestViewportMatrix`: Verifies all 6 viewports, viewport tags, touch target rules, and iOS auto-zoom font guard.
+     - `TestColorContrastAndFocus`: WCAG AA contrast ratio calculations, brand color contrast, focus-visible rings, skip links, and main landmarks.
+     - `TestModalAccessibilityAndEscape`: Modal ARIA attributes and universal JavaScript ESC handling.
+     - `TestCriticalWorkflowsFormLabels`: Programmatic form labels across all 9 critical user journeys.
+   - **Result: 18/18 passed (100%)**.
+5. **Axe Core E2E Accessibility Suite Pass (`tests/e2e/test_phase9_a11y.py`)**:
+   - Executed headless Chromium with Axe Core:
+     - `test_a11y_homepage`: **PASSED** (0 violations)
+     - `test_a11y_admin_login`: **PASSED** (0 violations)
+     - `test_a11y_courses_catalog`: **PASSED** (0 violations)
+   - **Result: 3/3 passed (100%)**.
+6. **Full Regression Test Suite Pass**:
+   - Executed full regression test suite: **174 passed, 6 deselected in 246.53s (100% pass rate)**.
+   - Zero tracked secrets/databases confirmed via `python scripts/verify_env_safety.py`.
+   - Zero critical database integrity violations confirmed via `python scripts/check_data_integrity.py`.
+
+### Next Steps / Session 12 Transition
+- Session 12: Phase 19 (Performance & Production Readiness Audit: caching, bundle size, Lighthouse optimization).
+
+
 
 
 

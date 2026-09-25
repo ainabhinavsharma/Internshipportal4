@@ -35,9 +35,10 @@
         <div class="options-group">
           {% for option in q.options %}
           <label class="option-label">
-            <input type="radio" name="q_{{ q.id }}" value="{{ loop.index0 }}" required>
+            <input type="radio" name="q_{{ q.id }}" value="{{ loop.index0 }}" aria-label="{{ option }}" required>
             <span>{{ option }}</span>
           </label>
+
           {% endfor %}
         </div>
       </div>
@@ -54,9 +55,10 @@
 </div>
 
 <!-- Result modal -->
-<div class="modal" id="resultModal">
+<div class="modal" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
   <div class="modal-box t-center">
     <h2 id="resultTitle" style="font-size:20px;margin-bottom:12px">Quiz result</h2>
+
     <p id="resultText" style="font-size:16px;color:var(--tx-head)"></p>
     <p id="resultSub" class="t-sm t-muted mb-24"></p>
     <a href="/courses/{{ course.id }}/learn" id="resultActionBtn" class="btn btn-primary">

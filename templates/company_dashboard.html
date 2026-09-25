@@ -83,10 +83,10 @@
           <p class="hint">Submitted courses are reviewed by DBERT staff before appearing live in the student catalog.</p>
           
           <form id="courseForm" data-act-submit="submitCourse" data-arg-submit='["$event"]'>
-            <label class="field-label">Course Title</label>
+            <label class="field-label" for="c_title">Course Title</label>
             <input type="text" id="c_title" class="field-input" placeholder="e.g. Master Python AI Automation" required>
             
-            <label class="field-label">Domain</label>
+            <label class="field-label" for="c_domain">Domain</label>
             <select id="c_domain" class="field-input">
               <option value="AI Agent Development">AI Agent Development</option>
               <option value="Data Analyst">Data Analyst</option>
@@ -94,21 +94,22 @@
               <option value="Python Automation">Python Automation</option>
             </select>
             
-            <label class="field-label">Pricing Type</label>
+            <label class="field-label" for="c_is_paid">Pricing Type</label>
             <select id="c_is_paid" class="field-input" data-act-change="togglePrice" data-arg-change='["$value"]'>
               <option value="0">Free Access</option>
               <option value="1">Paid Course Track (₹)</option>
             </select>
             
             <div id="priceWrap" style="display:none;">
-              <label class="field-label">Price (INR ₹)</label>
+              <label class="field-label" for="c_price">Price (INR ₹)</label>
               <input type="number" id="c_price" class="field-input" placeholder="e.g. 1999" min="99" value="1999">
               <p class="hint" style="margin-top:4px;">You receive 85% (₹1,699) per sale after DBERT 15% platform fee.</p>
             </div>
             
             <button type="submit" class="btn" style="margin-top:16px; width:100%; justify-content:center;"><i class="fas fa-paper-plane"></i> Submit Course for Review</button>
-            <div id="courseMsg" class="msg"></div>
+            <div id="courseMsg" class="msg" role="alert"></div>
           </form>
+
         </div>
       </section>
 
@@ -119,15 +120,16 @@
           <h3>Change password</h3>
           <p class="hint">Use at least 8 characters.</p>
           <form id="pwf" data-prevent-submit>
-            <label class="field-label">Current password</label>
-            <input class="field-input" type="password" name="current_password" required>
-            <label class="field-label">New password</label>
-            <input class="field-input" type="password" name="new_password" required>
-            <label class="field-label">Confirm new password</label>
-            <input class="field-input" type="password" name="confirm_password" required>
+            <label class="field-label" for="cp_current">Current password</label>
+            <input class="field-input" type="password" id="cp_current" name="current_password" required>
+            <label class="field-label" for="cp_new">New password</label>
+            <input class="field-input" type="password" id="cp_new" name="new_password" required>
+            <label class="field-label" for="cp_confirm">Confirm new password</label>
+            <input class="field-input" type="password" id="cp_confirm" name="confirm_password" required>
             <button class="btn" type="submit" style="margin-top:16px;"><i class="fas fa-key"></i> Update password</button>
-            <div class="msg" id="pwmsg"></div>
+            <div class="msg" id="pwmsg" role="alert"></div>
           </form>
+
         </div>
       </section>
     </main>

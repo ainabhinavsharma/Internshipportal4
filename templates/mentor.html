@@ -173,15 +173,16 @@
 <!-- ══════════════════════════════════════════
      REVIEW MODAL
 ══════════════════════════════════════════ -->
-<div id="reviewModal" class="modal-overlay" style="display:none;">
+<div id="reviewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mentorModalTitle" style="display:none;">
   <div class="modal-box">
     <div class="modal-header">
       <div>
-        <h2><i class="fas fa-clipboard-check"></i>&nbsp; Review Application</h2>
+        <h2 id="mentorModalTitle"><i class="fas fa-clipboard-check"></i>&nbsp; Review Application</h2>
         <p id="modal-applicant-email">—</p>
       </div>
-      <button class="modal-close" data-act-click="closeReviewModal"><i class="fas fa-times"></i></button>
+      <button class="modal-close" data-act-click="closeReviewModal" aria-label="Close review dialog"><i class="fas fa-times"></i></button>
     </div>
+
     <div class="modal-body">
 
       <!-- Details -->

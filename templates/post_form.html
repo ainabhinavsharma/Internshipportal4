@@ -21,59 +21,60 @@
     <div class="card">
       <form id="f" data-prevent-submit>
         <div class="two">
-          <div><label>Type</label>
-            <select name="post_type">
+          <div><label for="post_type">Type</label>
+            <select name="post_type" id="post_type">
               <option value="job" {% if post and post.post_type=='job' %}selected{% endif %}>Job</option>
               <option value="internship" {% if post and post.post_type=='internship' %}selected{% endif %}>Internship</option>
             </select>
           </div>
-          <div><label>Domain</label>
-            <select name="domain">
+          <div><label for="domain">Domain</label>
+            <select name="domain" id="domain">
               {% for d in domains %}<option value="{{ d }}" {% if post and post.domain==d %}selected{% endif %}>{{ d }}</option>{% endfor %}
             </select>
           </div>
         </div>
-        <label>Title</label><input name="title" value="{{ post.title if post else '' }}" required>
-        <label>Description</label><textarea name="description" rows="4">{{ post.description if post else '' }}</textarea>
-        <label>Responsibilities</label><textarea name="responsibilities" rows="3">{{ post.responsibilities if post else '' }}</textarea>
-        <label>Skills</label><input name="skills" id="skills" value="{{ post.skills if post else '' }}" placeholder="React, SQL, …">
+        <label for="title">Title</label><input name="title" id="title" value="{{ post.title if post else '' }}" required>
+        <label for="description">Description</label><textarea name="description" id="description" rows="4">{{ post.description if post else '' }}</textarea>
+        <label for="responsibilities">Responsibilities</label><textarea name="responsibilities" id="responsibilities" rows="3">{{ post.responsibilities if post else '' }}</textarea>
+        <label for="skills">Skills</label><input name="skills" id="skills" value="{{ post.skills if post else '' }}" placeholder="React, SQL, …">
         <div id="skillSuggest" class="skill-suggest"></div>
         <div class="hint" id="skillSuggestHint" style="display:none;">Suggested for this domain — click to add.</div>
         <div class="two">
-          <div><label>Location</label><input name="location" value="{{ post.location if post else '' }}"></div>
-          <div><label>Work mode</label>
-            <select name="work_mode">
+          <div><label for="location">Location</label><input name="location" id="location" value="{{ post.location if post else '' }}"></div>
+          <div><label for="work_mode">Work mode</label>
+            <select name="work_mode" id="work_mode">
               {% for m in ['remote','hybrid','onsite'] %}<option value="{{ m }}" {% if post and post.work_mode==m %}selected{% endif %}>{{ m }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <!-- UAT #37D: ask Paid/Unpaid first; reveal wage fields only when Paid. -->
-        <label>Compensation</label>
+        <label for="compensation">Compensation</label>
         <select name="compensation" id="compensation" data-act-change="onCompChange">
           <option value="paid">Paid (stipend)</option>
           <option value="unpaid">Unpaid</option>
         </select>
         <div class="two" id="wageBlock" style="margin-top:12px;">
-          <div><label>Stipend min (₹)</label><input name="stipend_min" type="number" value="{{ post.stipend_min if post and post.stipend_min is not none else '' }}"></div>
-          <div><label>Stipend max (₹)</label><input name="stipend_max" type="number" value="{{ post.stipend_max if post and post.stipend_max is not none else '' }}"></div>
-          <div><label>Pay period</label>
-            <select name="pay_period">
+          <div><label for="stipend_min">Stipend min (₹)</label><input name="stipend_min" id="stipend_min" type="number" value="{{ post.stipend_min if post and post.stipend_min is not none else '' }}"></div>
+          <div><label for="stipend_max">Stipend max (₹)</label><input name="stipend_max" id="stipend_max" type="number" value="{{ post.stipend_max if post and post.stipend_max is not none else '' }}"></div>
+          <div><label for="pay_period">Pay period</label>
+            <select name="pay_period" id="pay_period">
               {% set _pp = post.pay_period if post else 'month' %}
               {% for pp in ['month','week','day','hour','year'] %}<option value="{{ pp }}" {% if _pp==pp %}selected{% endif %}>{{ pp }}</option>{% endfor %}
             </select>
           </div>
         </div>
         <div class="two">
-          <div><label>Duration</label><input name="duration" value="{{ post.duration if post else '' }}" placeholder="3 months"></div>
-          <div><label>Openings</label><input name="openings" type="number" value="{{ post.openings if post else 1 }}"></div>
-          <div><label>Apply by</label><input name="apply_by" id="apply_by" type="date" value="{{ post.apply_by if post else '' }}"><div class="hint">Defaults to 15 days from today — change if you like.</div></div>
+          <div><label for="duration">Duration</label><input name="duration" id="duration" value="{{ post.duration if post else '' }}" placeholder="3 months"></div>
+          <div><label for="openings">Openings</label><input name="openings" id="openings" type="number" value="{{ post.openings if post else 1 }}"></div>
+          <div><label for="apply_by">Apply by</label><input name="apply_by" id="apply_by" type="date" value="{{ post.apply_by if post else '' }}"><div class="hint">Defaults to 15 days from today — change if you like.</div></div>
         </div>
         {% if post %}
         <div class="two">
-          <div><label>Listing expiry (extend)</label><input name="expires_at" id="expires_at" type="date" value="{{ post.expires_at[:10] if post.expires_at else '' }}"><div class="hint">Post stops appearing on the board after this date. Leave blank for no fixed expiry — push it out to keep the post live longer.</div></div>
+          <div><label for="expires_at">Listing expiry (extend)</label><input name="expires_at" id="expires_at" type="date" value="{{ post.expires_at[:10] if post.expires_at else '' }}"><div class="hint">Post stops appearing on the board after this date. Leave blank for no fixed expiry — push it out to keep the post live longer.</div></div>
         </div>
         {% endif %}
-        <label>Eligibility</label><textarea name="eligibility" rows="2">{{ post.eligibility if post else '' }}</textarea>
+        <label for="eligibility">Eligibility</label><textarea name="eligibility" id="eligibility" rows="2">{{ post.eligibility if post else '' }}</textarea>
+
 
         <label>Preferred certifications</label>
         <div id="certs"><span class="hint">Loading courses…</span></div>
@@ -103,7 +104,7 @@
 
     var POST_ID = {{ post.id if post else 'null' }};
     {# certifications_json is raw DB text dropped straight into a <script nonce="{{ csp_nonce() }}">. A
-       stored "</script>" would close the tag and execute whatever followed, so
+       stored "<\/script>" would close the tag and execute whatever followed, so
        the sequence is neutralised the same way _job_posting_jsonld does it. #}
     var SAVED_CERTS = {{ ((post.certifications_json or '[]') if post else '[]')|replace('</', '<\\/')|safe }};
     var IS_NEW = {{ 'true' if not post else 'false' }};
@@ -130,7 +131,7 @@
       box.innerHTML='';
       list.forEach(function(c){
         var lab=document.createElement('label');
-        lab.innerHTML='<input type="checkbox" value="'+c.id+'" data-title="'+(c.title||'').replace(/"/g,'&quot;')+'" '+(chosen[c.id]?'checked':'')+'> '+c.title;
+        lab.innerHTML='<input type="checkbox" aria-label="'+(c.title||'').replace(/"/g,'&quot;')+'" value="'+c.id+'" data-title="'+(c.title||'').replace(/"/g,'&quot;')+'" '+(chosen[c.id]?'checked':'')+'> '+c.title;
         box.appendChild(lab);
       });
     }

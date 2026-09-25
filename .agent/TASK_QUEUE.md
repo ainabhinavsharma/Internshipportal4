@@ -95,9 +95,10 @@
 - [x] UX-002 Comprehensive error handler audit (400, 401, 403, 404, 410, 500) answering what happened, why, and what the user can do (`app.py`, `templates/error.html`)
 - [x] UX-003 Dead-end detection test suite verifying error pages, recovery links, and no unhandled 500s or loops (`tests/test_ux_dead_ends.py`)
 
-## P1 — Session 11: Mobile & Accessibility Responsive Audit (NEXT)
+## P1 — Session 11: Mobile & Accessibility Responsive Audit (COMPLETE)
 
-- [ ] MOB-001 Viewport matrix verification (360x800, 390x844, 412x915, 768x1024, 1366x768, 1920x1080)
-- [ ] MOB-002 Critical workflow accessibility audit (keyboard focus, contrast, form labels, ARIA landmarks across signup, login, portal, jobs, payments)
-- [ ] MOB-003 Responsive layout and touch targets automated test suite
+- [x] MOB-001 Viewport matrix verification (360x800, 390x844, 412x915, 768x1024, 1366x768, 1920x1080) (`services/accessibility_service.py`, `scripts/audit_mobile_accessibility.py`)
+- [x] MOB-002 Critical workflow accessibility audit (keyboard focus visible, WCAG AA contrast, form labels, ARIA dialog roles, skip links across signup, login, portal, jobs, courses, tasks, payments, admin, company)
+- [x] MOB-003 Responsive layout and touch targets automated test suite (18/18 passed in `tests/test_mobile_accessibility.py`, 3/3 passed in `tests/e2e/test_phase9_a11y.py`)
+
 

@@ -64,7 +64,7 @@
     <span class="m-title" id="mTitle">My Portal</span>
   </header>
 
-  <main class="main">
+  <main class="main" id="main-content" tabindex="-1">
     <div class="content-wrap">
 
       <!-- Loading -->
@@ -156,15 +156,16 @@
             <p style="color:var(--tx-muted);font-size:11px;margin-top:6px;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:4px;"></i>Highlighted Mondays are available. You may select the last 2 Mondays (for instant access) or upcoming batches.</p>
           </div>
           <div class="joining-section">
-            <label class="file-label">Upload Payment Screenshot *</label>
+            <label class="file-label" for="paymentFile">Upload Payment Screenshot *</label>
             <div class="file-input-wrap" id="fileDropZone">
-              <input type="file" id="paymentFile" accept=".png,.jpg,.jpeg,.pdf" data-act-change="onFileChange" data-arg-change='["$el"]'/>
+              <input type="file" id="paymentFile" aria-label="Upload Payment Screenshot" accept=".png,.jpg,.jpeg,.pdf" data-act-change="onFileChange" data-arg-change='["$el"]'/>
               <div class="file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
               <p>Click or drag &amp; drop your payment screenshot</p>
               <p style="font-size:10px;margin-top:4px;">PNG, JPG, PDF &bull; Max 6MB</p>
               <div class="file-name hidden" id="fileNameDisplay"></div>
             </div>
           </div>
+
           <div class="form-error" id="enrollError" role="alert"><i class="fa fa-circle-exclamation"></i><span id="enrollErrorText"></span></div>
           <button class="btn-enroll" id="enrollBtn" data-act-click="submitEnrollment">
             <span class="btn-lbl"><i class="fas fa-check-circle"></i> &nbsp;Confirm Enrollment</span>
@@ -188,15 +189,16 @@
             </div>
           </div>
           <div class="joining-section" id="jdUploadSection">
-            <label class="file-label">Upload Payment Screenshot *</label>
+            <label class="file-label" for="jdPaymentFile">Upload Payment Screenshot *</label>
             <div class="file-input-wrap" id="jdFileDropZone">
-              <input type="file" id="jdPaymentFile" accept=".png,.jpg,.jpeg,.pdf" data-act-change="onJobDepositFileChange" data-arg-change='["$el"]'/>
+              <input type="file" id="jdPaymentFile" aria-label="Upload Payment Screenshot" accept=".png,.jpg,.jpeg,.pdf" data-act-change="onJobDepositFileChange" data-arg-change='["$el"]'/>
               <div class="file-icon"><i class="fas fa-cloud-upload-alt"></i></div>
               <p>Click or drag &amp; drop your payment screenshot</p>
               <p style="font-size:10px;margin-top:4px;">PNG, JPG, PDF &bull; Max 6MB</p>
               <div class="file-name hidden" id="jdFileNameDisplay"></div>
             </div>
           </div>
+
           <div class="form-error" id="jdError" role="alert"><i class="fa fa-circle-exclamation"></i><span id="jdErrorText"></span></div>
           <button class="btn-enroll" id="jdBtn" data-act-click="submitJobDeposit">
             <span class="btn-lbl"><i class="fas fa-check-circle"></i> &nbsp;Submit Deposit</span>
@@ -242,7 +244,8 @@
               <div class="form-group full"><label class="field-label" for="ra_why">Why do you want to join? * <span id="raWhyCount" style="float:right;font-size:11px;color:var(--amber);">0 / 80 min</span></label><textarea id="ra_why" class="field-textarea" rows="4" placeholder="Updated motivation — min 80 characters" data-act-input="updateRaWhy"></textarea></div>
               <div class="form-group full"><label class="field-label" for="ra_portfolio">Portfolio / GitHub (optional)</label><input type="url" id="ra_portfolio" class="field-input" placeholder="https://github.com/yourprofile"/></div>
             </div>
-            <input type="text" name="company_website" id="ra_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true"/>
+            <input type="text" name="company_website" id="ra_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" aria-label="Leave this field blank"/>
+
             <input type="hidden" id="ra_ts"/>
             <div class="form-error" id="reapplyError" role="alert"><i class="fa fa-circle-exclamation"></i><span id="reapplyErrorText"></span></div>
             <button class="btn-primary" id="reapplyBtn" data-act-click="doReapply" style="margin-top:8px;width:100%;justify-content:center;">
@@ -417,7 +420,8 @@
             <div class="form-group full"><label class="field-label" for="ad_why">Why this domain? * <span id="adWhyCount" style="float:right;font-size:11px;color:var(--amber);">0 / 80 min</span></label><textarea id="ad_why" class="field-textarea" rows="4" placeholder="Your motivation for this domain — min 80 characters" data-act-input="updateAdWhy"></textarea></div>
             <div class="form-group full"><label class="field-label" for="ad_portfolio">Portfolio / GitHub (optional)</label><input type="url" id="ad_portfolio" class="field-input" placeholder="https://github.com/yourprofile"/></div>
           </div>
-          <input type="text" name="company_website" id="ad_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true"/>
+          <input type="text" name="company_website" id="ad_company_website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" aria-label="Leave this field blank"/>
+
           <input type="hidden" id="ad_ts"/>
           <div class="form-error" id="adError" role="alert"><i class="fa fa-circle-exclamation"></i><span id="adErrorText"></span></div>
           <button class="btn-primary" id="adBtn" data-act-click="doApplyAnother" style="margin-top:14px;width:100%;justify-content:center;">
@@ -472,7 +476,7 @@
           <div style="color:#fff;font-weight:800;font-size:15px;margin-bottom:10px;" id="msgThreadLabel"></div>
           <div id="msgStream" style="display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto;padding:6px 2px;margin-bottom:12px;"></div>
           <form data-act-submit="msgSend" data-arg-submit='["$event"]' data-ret-submit style="display:flex;gap:10px;">
-            <input id="msgBody" class="field-input" autocomplete="off" maxlength="4000" placeholder="Type a message…" style="flex:1;">
+            <input id="msgBody" class="field-input" autocomplete="off" maxlength="4000" placeholder="Type a message…" aria-label="Type a message" style="flex:1;">
             <button type="submit" class="btn-primary">Send</button>
           </form>
         </div>
