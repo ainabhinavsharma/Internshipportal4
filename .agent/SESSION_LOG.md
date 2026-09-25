@@ -525,8 +525,45 @@
    - Verified zero critical database integrity issues via `scripts/check_data_integrity.py`.
 
 ### Next Steps / Session 14 Transition
-- Commit and push Session 13 deliverables to `origin/main` (`Internshipportal4`).
-- Proceed to Session 14 / Phase 21.
+- Session 14: Phase 21 (Observability, Telemetry & Incident Response).
+
+## Session: 2026-09-25 (Session 14: Observability, Telemetry & Incident Response)
+
+### Started
+- Time: 15:10
+- Trigger: User instructed to proceed with Phase 21 (Observability, Telemetry & Incident Response).
+- Target Remote: `https://github.com/ainabhinavsharma/Internshipportal4.git` (Remote `origin`, branch `main`).
+
+### Completed Work
+1. **Request ID Tracing & Latency Duration Header (OBS-001)**:
+   - Enhanced `before_request` and `after_request` hooks in `app.py`.
+   - Propagated inbound `X-Request-ID` or minted UUIDv4; injected `X-Request-ID` and `X-Request-Duration-Ms` on all responses.
+   - Verified propagation into `application_status_history` and `enrollment_status_history`.
+2. **Centralized Telemetry & Metrics Service (OBS-002)**:
+   - Created `services/telemetry_service.py` with thread-safe `TelemetryCollector` utilizing `threading.RLock()`.
+   - Tracks 2xx/3xx/4xx/5xx status buckets, specific HTTP status codes, normalized endpoint hits, and error rates.
+   - Tracks categorized failure counters: `db_failures`, `email_failures`, `payment_failures`, `ai_failures`, `login_failures`, `upload_failures`, `auth_failures`, `csrf_rejects`.
+   - Computes rolling latency percentiles (min, avg, p50, p95, p99, max).
+3. **Upgraded Liveness & Readiness Probes (OBS-003)**:
+   - Upgraded `/health`: Lightweight HTTP 200 liveness probe returning process status, service name, and uptime.
+   - Implemented `/ready`: Deep HTTP 200/503 readiness probe evaluating DB connectivity, WAL mode, core tables accessibility, and outbox dead-letter queue health.
+   - Implemented `/admin/telemetry`: Admin-only real-time metrics dashboard endpoint.
+4. **Production Incident Runbook (OBS-004)**:
+   - Authored `docs/INCIDENT_RUNBOOK.md` detailing the 5-stage lifecycle (DETECT -> CONTAIN -> MITIGATE -> RESOLVE -> POST-MORTEM).
+   - Provided complete SOPs covering all 9 required production failure modes: site down, database corruption, email outage, payment failure, AI outage, authentication lockout, file storage exhaustion, bad deployment rollback, and security breach.
+5. **Phase 21 Automated Test Suite (`tests/test_observability.py`)**:
+   - Authored 12 automated tests covering request ID tracing, health/readiness probes, metrics accumulation, failure counters, latency statistics, and JSON logger format.
+   - **Result: 12/12 passed (100% in 3.41s)**.
+6. **Full Regression Test Suite Pass**:
+   - Executed full regression suite: **229 passed, 6 deselected in 25.40s (100% pass rate)**.
+   - Verified zero tracked secrets or databases via `scripts/verify_env_safety.py`.
+   - Verified zero critical database integrity issues via `scripts/check_data_integrity.py`.
+   - Verified clean security audit via `scripts/audit_security.py`.
+
+### Next Steps / Session 15 Transition
+- Commit and push Session 14 deliverables to `origin/main` (`Internshipportal4`).
+- Proceed to Session 15 / Phase 22 (Guided Learning 2.0).
+
 
 
 

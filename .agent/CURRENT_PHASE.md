@@ -1,59 +1,54 @@
 # Current Phase
 
-Phase: Session 13 (Phase 20 Security Regression & Vulnerability Audit)
+Phase: Session 14 (Phase 21 Observability, Telemetry & Incident Response)
 Master Plan: INTERNSHIPPORTAL4_LOCAL_AI_AGENT_MASTER_PLAN.md
 Target Remote: https://github.com/ainabhinavsharma/Internshipportal4.git
-Status: COMPLETE (Phase 20 Gates Passed)
+Status: COMPLETE (Phase 21 Gates Passed)
 
 Current Task:
-Commit and push Session 13 deliverables to Internshipportal4, proceed to Session 14 / Phase 21.
+Commit and push Session 14 deliverables to Internshipportal4, proceed to Session 15 / Phase 22 (Guided Learning 2.0).
 
-Completed in Session 13:
-- SEC-REG-001: Automated Dependency Audit with `pip-audit`:
-  - Scanned all pinned dependencies in `requirements.txt` against Google OSV and PyPI advisory databases.
-  - Zero known vulnerabilities (0 CVEs) found across all direct and transitive production dependencies.
-- SEC-REG-002: Bandit AST Security Linter:
-  - Created `bandit.yaml` with explicit justifications for test/GC skips.
-  - Audited and safely annotated all 12 potential SQL injection false positives (`# nosec B608`) where parameterized inputs were constructed dynamically for `IN (?, ?, ...)` clauses or whitelisted column maps.
-  - Re-ran Bandit AST scan: **0 High, 0 Medium, 0 Low issues** (100% clean bill of health).
-- SEC-REG-003: CSRF Protection Architecture & Verification:
-  - Verified timing-safe token comparison via `secrets.compare_digest`.
-  - Audited multi-channel token extraction (`X-CSRF-Token` header, `_csrf_token` in form data and JSON body).
-  - Verified exemptions for payment webhooks and authorized server-to-server cron jobs carrying `X-Cron-Key`.
-- SEC-REG-004: Session & Cookie Security Architecture:
-  - Audited `AUTH_COOKIE` attributes: `HttpOnly=True`, `SameSite="Lax"`, `Path="/"`, `Secure=COOKIE_SECURE`.
-  - Verified session token regeneration on each authentication (session fixation defense).
-  - Verified server-side session invalidation on logout (`user_sessions` purge) and client cookie clearing.
-- SEC-REG-005: Security Regression Test Suite & Tooling:
-  - Authored `tests/security/test_security_regression.py` covering:
-    - `TestCSRFDefenseEnforcement` (missing token 403, invalid token 403, header token 200, JSON token 200, safe methods, webhook & cron exemptions)
-    - `TestSessionFixationAndCookieSecurity` (cookie attributes, token rotation, logout DB invalidation, expired/tampered token rejection)
-    - `TestSQLInjectionResistance` (fuzzing listing, courses, and admin queries with `' OR '1'='1`, `'; DROP TABLE`, `UNION SELECT`; verifying parameterized safety and schema preservation)
-    - `TestSecurityHeaders` (X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Referrer-Policy, Permissions-Policy, anti-back-button Cache-Control on authenticated paths)
-  - Created automated audit CLI tool `scripts/audit_security.py` executing Bandit, pip-audit, and secret scan in unified pipeline.
-  - Authored comprehensive report `docs/SECURITY_AUDIT_REPORT.md`.
+Completed in Session 14:
+- OBS-001: Request ID Tracing & Latency Header Injection:
+  - Preserved inbound `X-Request-ID` from proxies or generated fresh UUIDv4.
+  - Injected `X-Request-ID` and `X-Request-Duration-Ms` on all responses in `app.py`.
+  - Propagated active `request_id` into `application_status_history` and `enrollment_status_history`.
+- OBS-002: Centralized Telemetry & Metrics Service:
+  - Created `services/telemetry_service.py` with thread-safe `TelemetryCollector`.
+  - Tracks 2xx, 3xx, 4xx, 5xx status buckets, specific HTTP status codes, and normalized endpoint hits.
+  - Tracks categorized domain failure counters: `db_failures`, `email_failures`, `payment_failures`, `ai_failures`, `login_failures`, `upload_failures`, `auth_failures`, `csrf_rejects`.
+  - Calculates moving latency percentiles (min, avg, p50, p95, p99, max).
+- OBS-003: Upgraded Liveness & Readiness Probes:
+  - Upgraded `/health`: Lightweight HTTP 200 liveness probe returning process status, service name, and uptime.
+  - Implemented `/ready`: Deep HTTP 200/503 readiness probe evaluating DB connectivity, WAL mode, core tables accessibility, and outbox dead-letter queue health.
+  - Implemented `/admin/telemetry`: Admin-only real-time metrics dashboard endpoint.
+- OBS-004: Production Incident Runbook:
+  - Authored `docs/INCIDENT_RUNBOOK.md` detailing the 5-stage lifecycle (DETECT -> CONTAIN -> MITIGATE -> RESOLVE -> POST-MORTEM).
+  - Provided complete SOPs covering all 9 required production failure modes: site down, database corruption, email outage, payment failure, AI outage, authentication lockout, file storage exhaustion, bad deployment rollback, and security breach.
+- OBS-005: Observability Automated Test Suite:
+  - Created `tests/test_observability.py` with 12 tests covering request ID tracing, health/readiness probes, metrics accumulation, failure counters, latency statistics, and JSON logger format.
+  - **Result: 12/12 passed (100% in 3.41s)**.
 - Test Results:
-  - `pytest tests/security/test_security_regression.py -v`: **27/27 passed (100% in 7.81s)**
-  - Full regression test suite (`pytest -v -k "not chromium"`): **217/217 passed (100% in 21.69s)**
+  - Full regression test suite (`pytest -v -k "not chromium"`): **229/229 passed (100% in 25.40s)**.
 - Safety Verifications:
-  - `python scripts/verify_env_safety.py`: 0 tracked secrets, 0 databases
-  - `python scripts/check_data_integrity.py`: 0 critical database integrity issues
-  - `python scripts/audit_security.py`: All 3 security audit checks passed
+  - `python scripts/verify_env_safety.py`: 0 tracked secrets, 0 databases.
+  - `python scripts/audit_security.py`: All 3 security audit checks passed (Bandit, pip-audit, secret scanner).
+  - `python scripts/check_data_integrity.py`: 0 critical database integrity issues.
 
 In Progress:
-- Commit and push Session 13 deliverables to `origin/main` (`Internshipportal4`)
+- Commit and push Session 14 deliverables to `origin/main` (`Internshipportal4`)
 
 Blocked:
 - None
 
 Next Phase:
-- Session 14 / Phase 21
+- Session 15 / Phase 22 (Guided Learning 2.0: Student Model, Mastery Policy, Adaptive Next Action, RAG, Synth Testing)
 
 Last Verified:
-2026-09-25 15:06
+2026-09-25 15:40
 
 Last Test Result:
-- `pytest tests/security/test_security_regression.py` -> 27 passed in 7.81s (100% pass)
-- `pytest -v -k "not chromium"` -> 217 passed, 6 deselected in 21.69s (100% pass)
+- `pytest tests/test_observability.py` -> 12 passed in 3.41s (100% pass)
+- `pytest -v -k "not chromium"` -> 229 passed, 6 deselected in 25.40s (100% pass)
 - `python scripts/verify_env_safety.py` -> 0 tracked secrets, 0 databases
 - `python scripts/audit_security.py` -> 0 vulnerabilities

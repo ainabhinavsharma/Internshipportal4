@@ -68,6 +68,11 @@
 | `SEC-REG-003` | 2026-09-25 | Timing-safe CSRF defense system & exemption audit | Pytest CSRF tests | `app.py`, `tests/security/test_security_regression.py` | None | Protects all mutating requests; permits authorized webhooks & cron | 7/7 tests passed |
 | `SEC-REG-004` | 2026-09-25 | Session fixation defense & cookie attribute hardening | Pytest session tests | `app.py`, `tests/security/test_security_regression.py` | None | HttpOnly, SameSite=Lax, token rotation on login, server purge on logout | 5/5 tests passed |
 | `SEC-REG-005` | 2026-09-25 | Security regression test suite & automated audit pipeline | Pytest & automated audit CLI | `tests/security/test_security_regression.py`, `scripts/audit_security.py`, `docs/SECURITY_AUDIT_REPORT.md` | None | Automated multi-layered vulnerability scanner in CI/CD pipeline | 27/27 tests + 217/217 full passed |
+| `OBS-001` | 2026-09-25 | Request ID tracing & latency duration header injection | Inbound header preservation & tests | `app.py`, `tests/test_observability.py` | Propagates request_id to status tables | Full end-to-end distributed request visibility | 4/4 tests passed |
+| `OBS-002` | 2026-09-25 | Centralized telemetry & metrics accumulator service | Metrics collector unit tests | `services/telemetry_service.py`, `app.py` | None | Thread-safe in-memory 4xx/5xx, failure, and latency tracking | Passed 100% |
+| `OBS-003` | 2026-09-25 | Upgraded liveness (`/health`) and deep readiness (`/ready`) probes | Probe tests | `app.py`, `services/telemetry_service.py` | None | Verifies DB, WAL mode, schema tables, and outbox queue | 3/3 tests passed |
+| `OBS-004` | 2026-09-25 | Production incident response runbook for all 9 failure scenarios | Runbook inspection | `docs/INCIDENT_RUNBOOK.md` | None | Comprehensive DETECT -> CONTAIN -> MITIGATE -> RESOLVE protocol | 9 SOPs documented |
+| `OBS-005` | 2026-09-25 | Observability & Telemetry automated test suite | Pytest (12 tests) & full regression | `tests/test_observability.py` | None | Guarantees observability features remain functional across updates | 12/12 passed (229/229 full) |
 
 
 

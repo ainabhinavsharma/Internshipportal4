@@ -114,3 +114,12 @@
 - [x] SEC-REG-004 Session & Cookie Security Architecture (HttpOnly, SameSite=Lax, Path=/, token rotation on login, server-side DB purge on logout)
 - [x] SEC-REG-005 Security Regression Test Suite (`tests/security/test_security_regression.py`, 27/27 tests passed; full test suite 217/217 passed; `scripts/audit_security.py` & `docs/SECURITY_AUDIT_REPORT.md`)
 
+## P1 — Session 14: Observability, Telemetry & Incident Response (COMPLETE)
+
+- [x] OBS-001 Request ID Tracing & Latency Header Injection (`g.request_id`, `X-Request-ID`, `X-Request-Duration-Ms`, status history propagation)
+- [x] OBS-002 Centralized Telemetry & Metrics Service (`services/telemetry_service.py`, thread-safe collection of requests, status code buckets, failure categorizations, latency percentiles)
+- [x] OBS-003 Upgraded Liveness (`/health`) and Readiness (`/ready`) Probes with DB, WAL mode, tables, and outbox checks
+- [x] OBS-004 Production Incident Runbook (`docs/INCIDENT_RUNBOOK.md` covering all 9 disaster scenarios with DETECT, CONTAIN, MITIGATE, RESOLVE, POST-MORTEM lifecycle)
+- [x] OBS-005 Observability & Telemetry Test Suite (`tests/test_observability.py` 12/12 passed, 229/229 full suite passed)
+
+

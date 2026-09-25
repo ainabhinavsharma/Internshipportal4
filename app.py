@@ -51,6 +51,13 @@ from services.enrollment_service import (
     UnauthorizedEnrollmentError,
     ConcurrentEnrollmentModificationError,
 )
+from services.telemetry_service import (
+    record_request,
+    record_failure,
+    get_telemetry_snapshot,
+    check_liveness,
+    check_readiness
+)
 
 
 try:
@@ -151,16 +158,21 @@ app.config["SESSION_COOKIE_SECURE"] = COOKIE_SECURE
 # X-Forwarded-For / X-Real-IP with the true client IP (see SECURITY_DEPLOY.md).
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
-# Phase 11: Request Tracing
+# Phase 11: Request Tracing & Phase 21: Telemetry Metrics
 @app.before_request
 def assign_request_id():
     # If the reverse proxy sets X-Request-ID, use it; otherwise generate a new one.
     g.request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    g.request_start_time = time.perf_counter()
 
 @app.after_request
 def inject_request_id(response):
     if hasattr(g, "request_id"):
         response.headers["X-Request-ID"] = g.request_id
+    if hasattr(g, "request_start_time"):
+        duration_ms = (time.perf_counter() - g.request_start_time) * 1000.0
+        response.headers["X-Request-Duration-Ms"] = f"{duration_ms:.2f}"
+        record_request(request.method, request.path, response.status_code, duration_ms)
     return response
 
 def csp_nonce():
@@ -546,6 +558,18 @@ def row_to_dict(row, exclude_sensitive=True):
 
 def log_error(context, e): 
     app_logger.error(f"[{context}] Error: {e}", exc_info=True)
+    try:
+        err_str = f"{context} {str(e)}".lower()
+        if "sqlite3" in err_str or "database" in err_str or "locked" in err_str:
+            record_failure("db_failures", {"context": context, "error": str(e)})
+        elif "smtp" in err_str or "mail" in err_str:
+            record_failure("email_failures", {"context": context, "error": str(e)})
+        elif "razorpay" in err_str or "payment" in err_str:
+            record_failure("payment_failures", {"context": context, "error": str(e)})
+        elif "ai" in err_str or "tutor" in err_str:
+            record_failure("ai_failures", {"context": context, "error": str(e)})
+    except Exception:
+        pass
 
 def log_security_event(event, details=None, severity="INFO"):
     """P2-4: Structured security event logging for monitoring/SIEM."""
@@ -623,7 +647,10 @@ def sniff_upload_type(file_storage):
     Actively rejects polyglot/malicious payload signatures (PHP, HTML/JS, Shell).
     Returns 'png' | 'jpg' | 'pdf' or None. Rewinds the stream afterwards."""
     from services.file_security_service import sniff_magic_type
-    return sniff_magic_type(file_storage)
+    res = sniff_magic_type(file_storage)
+    if res is None:
+        record_failure("upload_failures")
+    return res
 def is_valid_email(e): return bool(re.match(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$", e or ""))
 def is_valid_email_domain(email):
     if not is_valid_email(email): return False
@@ -738,6 +765,7 @@ def login_locked(identity):
 
 def record_login_fail(identity):
     try:
+        record_failure("login_failures", {"identity": identity})
         log_security_event("login_failure", {"identity": identity}, severity="WARNING")
         with get_db() as conn:
             conn.execute("INSERT INTO rate_events (bucket, created_at) VALUES (?,?)",
@@ -15370,17 +15398,34 @@ def cron_enrollment_reminders():
 
 @app.route("/health")
 def health():
-    """Lightweight liveness/readiness probe for EC2 monitoring / systemd / uptime checks.
-    Verifies process is up and the DB is reachable. No auth, no heavy work."""
+    """Lightweight liveness probe for EC2 monitoring / systemd / uptime checks.
+    Verifies process is responsive without DB load."""
+    _, live_info = check_liveness()
+    return jsonify(live_info), 200
+
+
+@app.route("/ready")
+def ready():
+    """Comprehensive readiness probe for container orchestrators and load balancers.
+    Verifies database connectivity, WAL mode, core schema tables, and outbox queue health."""
     try:
         with get_db() as conn:
-            conn.execute("SELECT 1").fetchone()
-        if random.random() < 0.05:
-            cleanup_expired_sessions()
-        return jsonify({"status": "ok"})
+            is_ready, ready_info = check_readiness(conn)
+        status_code = 200 if is_ready else 503
+        return jsonify(ready_info), status_code
     except Exception as e:
-        log_error("health", e)
-        return jsonify({"status": "degraded"}), 503
+        log_error("readiness_probe", e)
+        record_failure("db_failures", {"error": str(e)})
+        return jsonify({"status": "not_ready", "error": str(e)}), 503
+
+
+@app.route("/admin/telemetry")
+def admin_telemetry():
+    """Admin-only real-time telemetry metrics dashboard API."""
+    if not require_admin():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    snapshot = get_telemetry_snapshot()
+    return jsonify({"status": "success", "telemetry": snapshot})
 
 
 @app.route("/internship")

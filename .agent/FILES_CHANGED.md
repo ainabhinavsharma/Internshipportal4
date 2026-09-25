@@ -83,3 +83,7 @@
 | `scripts/audit_security.py` | New Automated Security Audit runner CLI | Executes Bandit, pip-audit, and secret scanner in unified pipeline | Phase 20 | Zero | `python scripts/audit_security.py` (3/3 passed) |
 | `docs/SECURITY_AUDIT_REPORT.md` | New Comprehensive Security Audit report | Documents static analysis, supply chain, CSRF, session, and headers | Phase 20 | Zero | Document inspection |
 | `tests/security/test_security_regression.py` | New Security Regression test suite | 27 test cases covering CSRF, sessions, SQLi resistance, and security headers | Phase 20 | Zero | 27/27 passed in 7.81s |
+| `services/telemetry_service.py` | New Telemetry and Observability service | Thread-safe collector for request rates, status buckets, failure categorizations, and latency percentiles | Phase 21 | Low | `pytest tests/test_observability.py` (12/12 passed) |
+| `app.py` | Added request duration header, upgraded `/health`, added `/ready` and `/admin/telemetry` | Provides liveness and deep readiness probes, admin telemetry endpoint, and automated failure hooks | Phase 21 | Medium | Full pytest suite (229/229 passed) |
+| `docs/INCIDENT_RUNBOOK.md` | New Production Incident Runbook | 5-stage incident lifecycle and SOPs for all 9 required production failure modes | Phase 21 | Zero | Document inspection |
+| `tests/test_observability.py` | New Observability and Telemetry test suite | 12 test cases verifying request tracing, probes, metrics accumulation, failure counters, and JSON logs | Phase 21 | Zero | 12/12 passed in 3.41s |
