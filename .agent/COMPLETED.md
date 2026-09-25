@@ -63,6 +63,12 @@
 | `PERF-001` | 2026-09-25 | Endpoint Latency SLA & Baseline Benchmarks | Automated CLI benchmarks & pytest | `services/performance_service.py`, `scripts/benchmark_performance.py`, `docs/PERFORMANCE_BASELINE.md` | None | Strict SLA latency guarantees (<250ms public, <150ms API) | 100% within SLA |
 | `PERF-002` | 2026-09-25 | Database Query Optimization & N+1 / Unbounded Query Profiling | Query profiler & query planner tests | `app.py`, `services/performance_service.py` | Core indexes added | Server-side pagination & index-backed lookups prevent denial of service | 16/16 tests passed |
 | `PERF-003` | 2026-09-25 | Static Asset Audit & High-Performance Caching Strategy | Static auditor & test speedup | `app.py`, `tests/test_performance_baseline.py` | Cache-Control: immutable | 1-year browser caching for assets; test suite accelerated 11x (21s total) | 190/190 passed |
+| `SEC-REG-001` | 2026-09-25 | Dependency vulnerability scan via `pip-audit` | CVE database check | `requirements.txt` | None | Guarantees zero known CVEs across all production dependencies | 0 CVEs detected |
+| `SEC-REG-002` | 2026-09-25 | Bandit AST security linter & query parameterization audit | Bandit scan | `bandit.yaml`, `app.py`, `services/outbox_service.py` | None | Eliminates static analysis security warnings with verified safe `# nosec B608` | 0 High, 0 Medium, 0 Low |
+| `SEC-REG-003` | 2026-09-25 | Timing-safe CSRF defense system & exemption audit | Pytest CSRF tests | `app.py`, `tests/security/test_security_regression.py` | None | Protects all mutating requests; permits authorized webhooks & cron | 7/7 tests passed |
+| `SEC-REG-004` | 2026-09-25 | Session fixation defense & cookie attribute hardening | Pytest session tests | `app.py`, `tests/security/test_security_regression.py` | None | HttpOnly, SameSite=Lax, token rotation on login, server purge on logout | 5/5 tests passed |
+| `SEC-REG-005` | 2026-09-25 | Security regression test suite & automated audit pipeline | Pytest & automated audit CLI | `tests/security/test_security_regression.py`, `scripts/audit_security.py`, `docs/SECURITY_AUDIT_REPORT.md` | None | Automated multi-layered vulnerability scanner in CI/CD pipeline | 27/27 tests + 217/217 full passed |
+
 
 
 

@@ -241,7 +241,7 @@ def replay_dead_letters(conn, event_ids: Optional[List[int]] = None) -> int:
             UPDATE event_outbox
             SET status = ?, retry_count = 0, next_retry_at = ?, last_error = NULL, updated_at = ?
             WHERE status = ? AND id IN ({placeholders})
-            """,
+            """,  # nosec B608
             (STATUS_PENDING, now, now, STATUS_DEAD_LETTER, *event_ids)
         )
     else:

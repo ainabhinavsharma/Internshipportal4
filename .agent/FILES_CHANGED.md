@@ -77,11 +77,9 @@
 | `docs/PERFORMANCE_BASELINE.md` | New Performance Baseline report | Documents verified baseline latencies across 6 key endpoints and static asset weight analysis (PERF-001) | Phase 19 | Zero | Document inspection |
 | `app.py` | Added 8 performance indexes in `init_db()`, server-side pagination to admin routes, immutable static asset caching, and fast test password hashing | Optimizes N+1 query patterns, bounds payload sizes, eliminates static asset re-transfers, accelerates test suite 11x (PERF-002, PERF-003) | Phase 19 | Medium | Full pytest suite (190/190 passed in 21s) |
 | `tests/test_performance_baseline.py` | New Performance & Production Readiness test suite | 16 test cases covering SLA latency benchmarks, admin pagination, immutable caching headers, query planner index verification, and profiler utilities (PERF-001 - PERF-003) | Phase 19 | Zero | 16/16 passed |
-
-
-
-
-
-
-
-
+| `bandit.yaml` | New Bandit security linter configuration | Define scan exclusions and justified skips (SEC-REG-002) | Phase 20 | Zero | `bandit -r app.py services/ -c bandit.yaml` (0 issues) |
+| `app.py` | Annotated 8 verified safe dynamic queries with `# nosec B608` | Parameterized inputs safely bound with ? placeholders | Phase 20 | Very Low | Full pytest suite (217/217 passed) |
+| `services/outbox_service.py` | Annotated dead-letter replay query with `# nosec B608` | Parameterized inputs safely bound with ? placeholders | Phase 20 | Very Low | `pytest tests/test_outbox_resilience.py` |
+| `scripts/audit_security.py` | New Automated Security Audit runner CLI | Executes Bandit, pip-audit, and secret scanner in unified pipeline | Phase 20 | Zero | `python scripts/audit_security.py` (3/3 passed) |
+| `docs/SECURITY_AUDIT_REPORT.md` | New Comprehensive Security Audit report | Documents static analysis, supply chain, CSRF, session, and headers | Phase 20 | Zero | Document inspection |
+| `tests/security/test_security_regression.py` | New Security Regression test suite | 27 test cases covering CSRF, sessions, SQLi resistance, and security headers | Phase 20 | Zero | 27/27 passed in 7.81s |

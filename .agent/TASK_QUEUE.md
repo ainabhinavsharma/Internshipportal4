@@ -105,3 +105,12 @@
 - [x] PERF-001 Endpoint Latency SLA & Baseline Benchmarks (`services/performance_service.py`, `scripts/benchmark_performance.py`, `docs/PERFORMANCE_BASELINE.md`)
 - [x] PERF-002 Database Query Optimization & N+1 / Unbounded Query Profiling (`app.py` indexes, server-side pagination on `/admin/applications`, `/admin/enrollments`, `/admin/users`, query profiler)
 - [x] PERF-003 Static Asset Audit & High-Performance Caching Strategy (Static asset inventory, Cache-Control: immutable, 1-year max-age, test suite `tests/test_performance_baseline.py` 16/16 passed, test password hashing speedup)
+
+## P1 — Session 13: Security Regression & Vulnerability Audit (COMPLETE)
+
+- [x] SEC-REG-001 Automated Dependency Audit with `pip-audit` (Zero known CVEs across pinned production dependencies)
+- [x] SEC-REG-002 Bandit AST Security Linter (`bandit.yaml`, 0 High, 0 Medium, 0 Low with audited `# nosec B608` justifications)
+- [x] SEC-REG-003 CSRF Protection Architecture & Verification (Timing-safe digest verification, body/header extraction, webhook/cron exemptions)
+- [x] SEC-REG-004 Session & Cookie Security Architecture (HttpOnly, SameSite=Lax, Path=/, token rotation on login, server-side DB purge on logout)
+- [x] SEC-REG-005 Security Regression Test Suite (`tests/security/test_security_regression.py`, 27/27 tests passed; full test suite 217/217 passed; `scripts/audit_security.py` & `docs/SECURITY_AUDIT_REPORT.md`)
+

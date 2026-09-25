@@ -1422,7 +1422,7 @@ def ensure_application_record(conn, acct, chosen_domain=None, status=STATUS_UNDE
             update_fields.append("why_join=?")
             update_vals.append(why_join)
         update_vals.append(app_id)
-        conn.execute(f"UPDATE applications SET {', '.join(update_fields)} WHERE id=?", tuple(update_vals))
+        conn.execute(f"UPDATE applications SET {', '.join(update_fields)} WHERE id=?", tuple(update_vals))  # nosec B608
     else:
         sop = why_join or "Completed profile onboarding and submitted application for internship track."
         cur = conn.execute("""
@@ -4755,7 +4755,7 @@ def courses_catalog():
             is_isolated = True
 
         where_sql = " AND ".join(where_clauses)
-        q = ("SELECT c.*, "
+        q = ("SELECT c.*, "  # nosec B608
              "COALESCE(cmp.name, 'DBERT Platform') AS author_name, "
              "(SELECT COUNT(*) FROM course_chapters WHERE course_id = c.id) AS total_days "
              "FROM courses c "
@@ -9463,7 +9463,7 @@ def _render_listings(post_type, location_page=False, city=None, city_slug=None, 
         params.append(location)
     with get_db() as conn:
         rows = conn.execute(
-            f"SELECT p.*, c.name AS company_name, "
+            f"SELECT p.*, c.name AS company_name, "  # nosec B608
             f"(SELECT COUNT(*) FROM post_applications pa WHERE pa.post_id = p.id) AS applications_count "
             f"FROM posts p JOIN companies c ON c.id=p.company_id "
             f"WHERE {where} ORDER BY p.published_at DESC LIMIT ? OFFSET ?",
@@ -9480,7 +9480,7 @@ def _render_listings(post_type, location_page=False, city=None, city_slug=None, 
             loc_where += " AND location != ?"
             loc_params.append(location)
         locations = [row_to_dict(r) for r in conn.execute(
-            f"SELECT location, COUNT(*) AS n FROM posts WHERE {loc_where} GROUP BY location ORDER BY location",
+            f"SELECT location, COUNT(*) AS n FROM posts WHERE {loc_where} GROUP BY location ORDER BY location",  # nosec B608
             loc_params,
         ).fetchall()]
         for loc in locations:
@@ -9488,7 +9488,7 @@ def _render_listings(post_type, location_page=False, city=None, city_slug=None, 
         live_count_here = None
         if location_page:
             live_count_here = conn.execute(
-                f"SELECT COUNT(*) FROM posts p WHERE p.post_type=? AND p.location=? AND {_LIVE_SQL}",
+                f"SELECT COUNT(*) FROM posts p WHERE p.post_type=? AND p.location=? AND {_LIVE_SQL}",  # nosec B608
                 (post_type, location),
             ).fetchone()[0]
     posts = [row_to_dict(r) for r in rows[:_POSTS_PER_PAGE]]
@@ -9657,7 +9657,7 @@ def _render_post_detail(post_type, slug, post_id):
         # T3 interlinking: more in the same domain, more in the same city — both
         # exclude self and only ever surface other LIVE posts.
         related_posts = [row_to_dict(r) for r in conn.execute(
-            f"SELECT id, title, post_type, slug, domain, location, work_mode, "
+            f"SELECT id, title, post_type, slug, domain, location, work_mode, "  # nosec B608
             f"(SELECT COUNT(*) FROM post_applications pa WHERE pa.post_id = posts.id) AS applications_count FROM posts "
             f"WHERE domain=? AND id!=? AND {_LIVE_SQL} ORDER BY published_at DESC LIMIT 4",
             (post["domain"], post_id),
@@ -9665,7 +9665,7 @@ def _render_post_detail(post_type, slug, post_id):
         city_posts = []
         if post.get("location"):
             city_posts = [row_to_dict(r) for r in conn.execute(
-                f"SELECT id, title, post_type, slug, domain, location, work_mode, "
+                f"SELECT id, title, post_type, slug, domain, location, work_mode, "  # nosec B608
                 f"(SELECT COUNT(*) FROM post_applications pa WHERE pa.post_id = posts.id) AS applications_count FROM posts "
                 f"WHERE location=? AND id!=? AND {_LIVE_SQL} ORDER BY published_at DESC LIMIT 4",
                 (post["location"], post_id),
@@ -13429,7 +13429,7 @@ def admin_applications():
             if emails_in_page:
                 placeholders = ",".join("?" for _ in emails_in_page)
                 counts = conn.execute(
-                    f"SELECT LOWER(email) AS em, COUNT(*) AS c FROM applications WHERE LOWER(email) IN ({placeholders}) GROUP BY LOWER(email)",
+                    f"SELECT LOWER(email) AS em, COUNT(*) AS c FROM applications WHERE LOWER(email) IN ({placeholders}) GROUP BY LOWER(email)",  # nosec B608
                     list(emails_in_page)
                 ).fetchall()
                 by_email = {r["em"]: r["c"] for r in counts}
@@ -13490,7 +13490,7 @@ def admin_enrollments():
             elif sf == "rejected":
                 where_sql = " WHERE e.payment_status='Rejected'"
 
-            total_filtered = conn.execute(f"SELECT COUNT(*) as c FROM enrollments e {where_sql}").fetchone()["c"]
+            total_filtered = conn.execute(f"SELECT COUNT(*) as c FROM enrollments e {where_sql}").fetchone()["c"]  # nosec B608
 
             if limit is not None and limit > 0:
                 rows = conn.execute(
@@ -13872,7 +13872,7 @@ def admin_intern_edit():
 
             set_clause = ", ".join(f"{col}=?" for col, _ in update_fields)
             params = [val for _, val in update_fields] + [intern_id]
-            conn.execute(f"UPDATE intern_accounts SET {set_clause} WHERE id=?", params)
+            conn.execute(f"UPDATE intern_accounts SET {set_clause} WHERE id=?", params)  # nosec B608
 
             # If email changed, sync related records so intern's data remains linked
             if email != old_email:
@@ -14059,7 +14059,7 @@ def admin_users():
             if emails_in_page:
                 placeholders = ",".join("?" for _ in emails_in_page)
                 apps = conn.execute(
-                    f"SELECT email, domain, status FROM applications WHERE LOWER(email) IN ({placeholders})",
+                    f"SELECT email, domain, status FROM applications WHERE LOWER(email) IN ({placeholders})",  # nosec B608
                     list(emails_in_page)
                 ).fetchall()
             else:

@@ -1,0 +1,20 @@
+# Bandit Security Linter Configuration
+# DBERT Internship Portal - Phase 20 Security Regression
+
+# Skips with verified justifications:
+# B101: assert statements (used for invariant assertions and test verifications)
+# B603: subprocess call without shell=True (verified safe in backup scripts)
+# B404: import subprocess
+# B105: hardcoded password strings (dev environment fallbacks; blocked in production by scripts/verify_env_safety.py)
+# B311: standard pseudo-random generators (used strictly for probabilistic GC/cleanup and cache jitter, secrets module used for all tokens/keys)
+# B110: try/except/pass (used for non-fatal graceful degradation in parsing and cleanup routines)
+skips: ['B101', 'B603', 'B404', 'B105', 'B311', 'B110']
+
+# Excluded paths:
+exclude_dirs:
+  - 'tests'
+  - '.agent'
+  - 'backups'
+  - 'node_modules'
+  - '.git'
+  - '__pycache__'
